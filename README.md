@@ -43,34 +43,13 @@ The server should be able to handle PHP and included is a `.htaccess` file that 
 How to install it
 -----------------
 
-Place the files in a directory on your server. The easiest way to install is to download the files as a <a href="https://github.com/WhichBrowser/WhichBrowser/archive/master.zip">zip archive</a> from Github and place
-them in a directory called `whichbrowser` on your server. However, this is not ideal for keeping WhichBrowser up-to-date.
+You can install WhichBrowser by using Composer - the standard package manager for PHP. The package is called `whichbrowser/whichbrowser`.
 
-
-###Using Git
-
-It is recommended to use `git` directly on the server to make sure you get the latest changes and to make it easier to keep WhichBrowser updated.
-
-Go to the root directory of your site and run the following command:
-
-    git clone https://github.com/WhichBrowser/WhichBrowser.git whichbrowser
-
-This will create a new directory called `whichbrowser` and install the latest version of WhichBrowser. If you want to update WhichBrowser to the latest version you can simply run the following command from the `whichbrowser` directory:
-
-    git pull
-
-Given that WhichBrowser is updated regularly - sometimes even multiple times a day - you should run this command as often as possible. You might even want to consider setting up a cron job for this purpose.
-
-
-###Using Composer
-
-As an alternative we also offer a Composer package called `whichbrowser/whichbrowser`.
-
-    php composer.phar require whichbrowser/whichbrowser dev-master
+    composer require whichbrowser/whichbrowser
 
 And just like the Git method, you can easily update WhichBrowser by running a simple command.
 
-    php composer.phar update
+    composer update
 
 You should run this command as often as possible. You might even want to consider setting up a cron job for this purpose.
 
@@ -81,28 +60,6 @@ After installing with Composer you may need to create a symlink to the vendor di
 Or create a `.htaccess` file in the root of your site and add an `Alias` command:
 
     Alias /whichbrowser vendor/whichbrowser/whichbrowser
-
-
-###Using Bower
-
-Finally we also offer a Bower package called `whichbrowser`.
-
-    bower install whichbrowser
-
-And just like the Git and Composer method, you can easily update WhichBrowser by running a simple command.
-
-    bower update
-
-You should run this command as often as possible. You might even want to consider setting up a cron job for this purpose.
-
-After installing with Bower you may need to create a symlink to the component directory in which WhichBrowser was installed:
-
-    ln -s bower_components/whichbrowser whichbrowser
-
-Or create a `.htaccess` file in the root of your site and add an `Alias` command:
-
-    Alias /whichbrowser bower_components/whichbrowser
-
 
 
 
@@ -128,86 +85,86 @@ The second step is to create a new `WhichBrowser` object. This object will conta
 
 For example:
 
-    Browsers = new WhichBrowser();
+    result = new WhichBrowser();
 
 
-The variable `Browsers` now contains an object which you can query for information. There are various ways to access the information.
+The variable `result` now contains an object which you can query for information. There are various ways to access the information.
 
 
 First of all, you can treat the object as a string to get a human readable identification:
 
-    "You are using " + Browsers
+    "You are using " + result
     // You are using Chrome 27 on Mac OS X 10.8.4
 
 If you need to, you can also explicitly typecast the object to a string
 
-    String(Browsers)
-    Browsers.toString()
+    String(result)
+    result.toString()
 
 
 Or you can turn the object into JSON:
 
-    JSON.stringify(Browsers)
+    JSON.stringify(result)
     // { "browser": {"name":"Chrome","version":{"value":"27"...
 
 
 Another possiblity is to query the object:
 
-    Browsers.isType('desktop')
+    result.isType('desktop')
     // true
 
-    Browsers.isType('mobile', 'tablet', 'media')  
+    result.isType('mobile', 'tablet', 'media')  
     // false
 
-    Browsers.isBrowser('Maxthon', '<', '4.0.5')  
+    result.isBrowser('Maxthon', '<', '4.0.5')  
     // false
 
-    Browsers.isOs('iOS', '>=', '5')
+    result.isOs('iOS', '>=', '5')
     // false
 
-    Browsers.isEngine('Blink')
+    result.isEngine('Blink')
     // true
 
 
 You can also access these properties directly:
 
-    Browsers.browser
+    result.browser
     // Chrome 27  
 
-    Browsers.engine
+    result.engine
     // Blink
 
-    Browsers.os
+    result.os
     // Mac OS X 10.8.4
 
 
 Or access parts of these properties directly:
 
-    Browsers.browser.name
+    result.browser.name
     // Chrome
 
-    Browsers.browser.name + ' ' + String(Browsers.browser.version)
+    result.browser.name + ' ' + String(result.browser.version)
     // Chrome 27
 
-    Browsers.browser.version.major
+    result.browser.version.major
     // 27
 
-    Browsers.browser.version.minor
+    result.browser.version.minor
     // 0
 
-    Browsers.browser.version.original
+    result.browser.version.original
     // 27.0.1453.110
 
-    Browsers.engine.name
+    result.engine.name
     // Blink
 
 
 Finally you can also query versions directly:
 
-    Browsers.browser.version.is('>', 26)
+    result.browser.version.is('>', 26)
     // true
 
-    Browsers.os.version.is('<', '10.7.4')
+    result.os.version.is('<', '10.7.4')
     // false
 
 
@@ -347,25 +304,25 @@ The `Version` object is used for the `version` property of the `browser`, `engin
 `is(version)` or `is(comparison, version)`  
 Using this function it is easy to compare a version to another version. If you specify only one argument, this function will return if the versions are the same. You can also specify two arguments, in that case the first argument contains the comparison operator, such as `<`, `<=`, `=`, `=>` or `>`. The second argument is the version you want to compare it to. You can use versions like `10`, `10.7` or `'10.7.4'`, but be aware that `10` is not the same as `10.0`. For example if our OS version is `10.7.4`:
 
-    Browser.os.version.is('10.7.4')  
+    result.os.version.is('10.7.4')  
     // true
 
-    Browser.os.version.is('10.7')  
+    result.os.version.is('10.7')  
     // true
 
-    Browser.os.version.is('10')  
+    result.os.version.is('10')  
     // true
 
-    Browser.os.version.is('10.0')
+    result.os.version.is('10.0')
     // false
 
-    Browser.os.version.is('>', '10')
+    result.os.version.is('>', '10')
     // false
 
-    Browser.os.version.is('>', '10.7')
+    result.os.version.is('>', '10.7')
     // false
 
-    Browser.os.version.is('>', '10.7.3')
+    result.os.version.is('>', '10.7.3')
     // true
 
 
