@@ -12,12 +12,25 @@ class Version extends Base
     /** @var boolean */
     public $hidden = false;
 
+    /** @var string */
+    public $nickname;
+
+    /** @var string */
+    public $alias;
+
+    /** @var int */
+    public $details;
+
+    /** @var boolean */
+    public $builds;
+
+
 
     /**
      * Determine if the version is lower, equal or higher than the specified value
      *
-     * @param  string   $operator   The operator, must be <, <=, =, >= or >
-     * @param  mixed    $value      The value, can be an integer, float or string with a version number
+     * @param  string   The operator, must be <, <=, =, >= or >
+     * @param  mixed    The value, can be an integer, float or string with a version number
      *
      * @return boolean
      */
@@ -113,14 +126,14 @@ class Version extends Base
 
 
     /**
-     * Return the build number as an integer
+     * Return the patch number as an integer
      *
      * @return integer
      */
 
-    public function getBuild()
+    public function getPatch()
     {
-        return $this->getParts()->build;
+        return $this->getParts()->patch;
     }
 
 
@@ -129,8 +142,8 @@ class Version extends Base
      *
      * @internal
      *
-     * @param  string   $vaiue      Version string, with elements seperated by a dot
-     * @param  int      $count      The maximum precision
+     * @param  string   Version string, with elements seperated by a dot
+     * @param  int      The maximum precision
      *
      * @return float
      */
@@ -151,7 +164,8 @@ class Version extends Base
         if (count($parts) > 1) {
             $result .= '.';
 
-            for ($p = 1; $p < count($parts); $p++) {
+            $count = count($parts);
+            for ($p = 1; $p < $count; $p++) {
                 $result .= substr('0000' . $parts[$p], -4);
             }
         }
@@ -229,7 +243,8 @@ class Version extends Base
                 }
 
                 if (isset($this->builds) && !$this->builds) {
-                    for ($i = 0; $i < count($v); $i++) {
+                    $count = count($v);
+                    for ($i = 0; $i < $count; $i++) {
                         if ($v[$i] > 999) {
                             array_splice($v, $i, 1);
                         }

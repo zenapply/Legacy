@@ -204,14 +204,10 @@ trait Mobile
 
             if (isset($this->data->os->name)) {
                 for ($i = 0; $i < count($candidates); $i++) {
-                    $result = false;
-
                     if (!isset($this->data->device->model) && !isset($this->data->device->manufacturer)) {
                         if (isset($this->data->os->name) && ($this->data->os->name == 'Android' || $this->data->os->name == 'Linux')) {
                             $device = Data\DeviceModels::identify('android', $candidates[$i]);
                             if ($device->identified) {
-                                $result = true;
-
                                 $device->identified |= $this->data->device->identified;
                                 $this->data->device = $device;
 
@@ -225,8 +221,6 @@ trait Mobile
                         if (!isset($this->data->os->name) || $this->data->os->name == 'Windows' || $this->data->os->name == 'Windows Mobile' || $this->data->os->name == 'Windows CE') {
                             $device = Data\DeviceModels::identify('wm', $candidates[$i]);
                             if ($device->identified) {
-                                $result = true;
-
                                 $device->identified |= $this->data->device->identified;
                                 $this->data->device = $device;
 
@@ -981,7 +975,7 @@ trait Mobile
         }
 
 
-        if (preg_match('/\(([A-Z][0-9]+[A-Z])[^;]*; ?FOMA/ui', $ua, $match)) {
+        if (preg_match('/\(([A-Z]+[0-9]+[A-Z])[^;]*; ?FOMA/ui', $ua, $match)) {
             $this->data->device->manufacturer = 'DoCoMo';
             $this->data->device->model = Data\DeviceModels::cleanup($match[1]);
             $this->data->device->type = Constants\DeviceType::MOBILE;
@@ -1005,7 +999,7 @@ trait Mobile
             $this->data->device->generic = false;
         }
 
-        if (preg_match('/J-PHONE\/[^\/]+\/([^\/]+)\//u', $ua, $match)) {
+        if (preg_match('/J-PHONE\/[^\/]+\/([^\/]+)(?:\/|$)/u', $ua, $match)) {
             $this->data->device->manufacturer = 'Softbank';
             $this->data->device->model = Data\DeviceModels::cleanup($match[1]);
             $this->data->device->type = Constants\DeviceType::MOBILE;

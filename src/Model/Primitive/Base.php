@@ -16,9 +16,22 @@ class Base
     public function __construct($defaults = null)
     {
         if (is_array($defaults)) {
-            foreach ($defaults as $k => $v) {
-                $this->{$k} = $v;
-            }
+            $this->set($defaults);
+        }
+    }
+
+
+    /**
+     * Set the properties of the object the the values specified in the array
+     *
+     * @param  array  $properties  An array, the key of an element determines the name of the property
+     *
+     * @internal
+     */
+    public function set($properties)
+    {
+        foreach ($properties as $k => $v) {
+            $this->{$k} = $v;
         }
     }
 
@@ -35,7 +48,7 @@ class Base
     {
         $lines = [];
 
-        foreach ($this as $key => $value) {
+        foreach (get_object_vars($this) as $key => $value) {
             if (!is_null($value)) {
                 $line = $key . ": ";
 

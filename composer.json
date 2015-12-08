@@ -1,6 +1,11 @@
 {
-    "name": "whichbrowser/whichbrowser",
+    "name": "whichbrowser/legacy",
     "description": "Project containing the legacy version of WhichBrowser",
+
+    "replace": {
+        "whichbrowser/whichbrowser": "^1.0|^2.0"
+    }
+
     "keywords": ["useragent","browser"],
     "homepage": "http://whichbrowser.net",
     "license": "MIT",

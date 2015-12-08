@@ -431,7 +431,7 @@ trait Os
     {
         if ((isset($this->data->os->name) && $this->data->os->name == 'Android') || isset($this->data->os->name) && $this->data->os->name == 'Android TV') {
             if (preg_match('/Build\/([^\);]+)/u', $ua, $match)) {
-                $version = Data\BuildIds::identify('android', $match[1]);
+                $version = Data\BuildIds::identify($match[1]);
 
                 if ($version) {
                     if (!isset($this->data->os->version) || $this->data->os->version == null || $this->data->os->version->value == null || $version->toFloat() < $this->data->os->version->toFloat()) {
@@ -458,7 +458,7 @@ trait Os
             $this->data->os->name = 'Windows';
             $this->data->device->type = Constants\DeviceType::DESKTOP;
 
-            if (preg_match('/Windows NT ([0-9][0-9]?\.[0-9])/u', $ua, $match)) {
+            if (preg_match('/(?:Windows NT |WinNT)([0-9][0-9]?\.[0-9])/u', $ua, $match)) {
                 $this->data->os->version = new Version([ 'value' => $match[1] ]);
 
                 switch ($match[1]) {
@@ -518,6 +518,10 @@ trait Os
 
             if (preg_match('/Windows XP/u', $ua) || preg_match('/WinXP/u', $ua)) {
                 $this->data->os->version = new Version([ 'value' => '5.1', 'alias' => 'XP' ]);
+            }
+
+            if (preg_match('/Windows (3.[0-9\.]+)/u', $ua, $match)) {
+                $this->data->os->version = new Version([ 'value' => $match[1] ]);
             }
 
             if (preg_match('/WPDesktop/u', $ua)) {
@@ -1509,7 +1513,7 @@ trait Os
 
             [ 'name' => 'Grid OS',      'regexp' => [ '/Grid OS ([0-9.]*)/iu' ],                            'type' => Constants\DeviceType::TABLET ],
 
-            [ 'name' => 'MAUI Runtime', 'regexp' => [ '/MAUI/u' ],                                          'type' => Constants\DeviceType::MOBILE ],
+            [ 'name' => 'MAUI Runtime', 'regexp' => [ '/MAUI/iu' ],                                         'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'MTK',          'regexp' => [ '/\(MTK;/iu', '/\/MTK /iu' ],                         'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'QNX',          'regexp' => [ '/QNX/iu' ],                                          'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'VRE',          'regexp' => [ '/\(VRE;/iu' ],                                       'type' => Constants\DeviceType::MOBILE ],
@@ -1518,7 +1522,8 @@ trait Os
             [ 'name' => 'ThreadX',      'regexp' => [ '/ThreadX(?:_OS)?\/([0-9.]*)/iu' ] ],
         ];
 
-        for ($b = 0; $b < count($patterns); $b++) {
+        $count = count($patterns);
+        for ($b = 0; $b < $count; $b++) {
             for ($r = 0; $r < count($patterns[$b]['regexp']); $r++) {
 
                 if (preg_match($patterns[$b]['regexp'][$r], $ua, $match)) {

@@ -58,10 +58,10 @@ class Main
      *
      * @internal
      *
-     * @param  string   $property   The name of the property, such as 'browser', 'engine' or 'os'
-     * @param  string   $name       The name of the browser that is checked
-     * @param  string   $operator   Optional, the operator, must be <, <=, =, >= or >
-     * @param  mixed    $value      Optional, the value, can be an integer, float or string with a version number
+     * @param  string   The name of the property, such as 'browser', 'engine' or 'os'
+     * @param  string   The name of the browser that is checked
+     * @param  string   Optional, the operator, must be <, <=, =, >= or >
+     * @param  mixed    Optional, the value, can be an integer, float or string with a version number
      *
      * @return boolean
      */
@@ -70,30 +70,39 @@ class Main
     {
         $arguments = func_get_args();
         $x = $arguments[0];
-        $valid = true;
         
-        if (count($arguments) >= 2) {
-            $valid = $valid && $this->$x->name == $arguments[1];
-        
-            if (count($arguments) >= 4 && !empty($this->$x->version) && $valid) {
-                $valid = $valid && $this->$x->version->is($arguments[2], $arguments[3]);
+        if (count($arguments) < 2) {
+            return false;
+        }
+
+        if (empty($this->$x->name)) {
+            return false;
+        }
+    
+        if ($this->$x->name != $arguments[1]) {
+            return false;
+        }
+    
+        if (count($arguments) >= 4) {
+            if (empty($this->$x->version)) {
+                return false;
             }
 
-            if ($valid) {
-                return true;
+            if (!$this->$x->version->is($arguments[2], $arguments[3])) {
+                return false;
             }
         }
 
-        return $valid;
+        return true;
     }
 
 
     /**
      * Check the name of the browser and optionally is a specific version
      *
-     * @param  string   $name       The name of the browser that is checked
-     * @param  string   $operator   Optional, the operator, must be <, <=, =, >= or >
-     * @param  mixed    $value      Optional, the value, can be an integer, float or string with a version number
+     * @param  string   The name of the browser that is checked
+     * @param  string   Optional, the operator, must be <, <=, =, >= or >
+     * @param  mixed    Optional, the value, can be an integer, float or string with a version number
      *
      * @return boolean
      */
@@ -109,9 +118,9 @@ class Main
     /**
      * Check the name of the rendering engine and optionally is a specific version
      *
-     * @param  string   $name       The name of the rendering engine that is checked
-     * @param  string   $operator   Optional, the operator, must be <, <=, =, >= or >
-     * @param  mixed    $value      Optional, the value, can be an integer, float or string with a version number
+     * @param  string   The name of the rendering engine that is checked
+     * @param  string   Optional, the operator, must be <, <=, =, >= or >
+     * @param  mixed    Optional, the value, can be an integer, float or string with a version number
      *
      * @return boolean
      */
@@ -127,9 +136,9 @@ class Main
     /**
      * Check the name of the operating system and optionally is a specific version
      *
-     * @param  string   $name       The name of the operating system that is checked
-     * @param  string   $operator   Optional, the operator, must be <, <=, =, >= or >
-     * @param  mixed    $value      Optional, the value, can be an integer, float or string with a version number
+     * @param  string   The name of the operating system that is checked
+     * @param  string   Optional, the operator, must be <, <=, =, >= or >
+     * @param  mixed    Optional, the value, can be an integer, float or string with a version number
      *
      * @return boolean
      */
@@ -171,8 +180,8 @@ class Main
     /**
      * Check if the detected browser is of the specified type
      *
-     * @param  string   $type       The type, or a combination of type and subtype joined with a semicolon.
-     * @param  string   $type,...   Unlimited optional types to check
+     * @param  string   The type, or a combination of type and subtype joined with a semicolon.
+     * @param  string   Unlimited optional types to check
      *
      * @return boolean
      */
@@ -181,7 +190,8 @@ class Main
     {
         $arguments = func_get_args();
 
-        for ($a = 0; $a < count($arguments); $a++) {
+        $count = count($arguments);
+        for ($a = 0; $a < $count; $a++) {
             if (strpos($arguments[$a], ':') !== false) {
                 list($type, $subtype) = explode(':', $arguments[$a]);
                 if ($type == $this->device->type && $subtype == $this->device->subtype) {
@@ -275,7 +285,7 @@ class Main
         }
 
         if ($this->device->type == 'desktop' && !empty($os) && !empty($engine) && empty($device)) {
-            return 'an unknown browser based on ' . $engine + ' running on ' + $os;
+            return 'an unknown browser based on ' . $engine . ' running on ' . $os;
         }
 
         if ($this->browser->stock && !empty($os) && empty($device)) {
@@ -336,6 +346,10 @@ class Main
 
         if (!count($result['device'])) {
             unset($result['device']);
+        }
+
+        if ($this->camouflage) {
+            $result['camouflage'] = true;
         }
 
         return $result;
