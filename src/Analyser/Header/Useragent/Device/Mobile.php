@@ -558,7 +558,7 @@ trait Mobile
                                             $this->data->os->name = 'Nokia Asha Platform';
                                             $this->data->os->version = new Version([ 'value' => '1.0' ]);
 
-                                            if (preg_match('/java_runtime_version=Nokia_Asha_([0-9_]+);/u', $ua, $match)) {
+                                            if (preg_match('/java_runtime_version=Nokia_Asha_([0-9_]+)[;\)]/u', $ua, $match)) {
                                                 $this->data->os->version = new Version([ 'value' => str_replace('_', '.', $match[1]) ]);
                                             }
                                         }
@@ -755,9 +755,6 @@ trait Mobile
                                             break;
                                         case '1.0':
                                             $this->data->os->version = new Version([ 'value' => '2.0', 'alias' => '2.0 or earlier' ]);
-                                            break;
-                                        case '2.0':
-                                            $this->data->os->version = new Version([ 'value' => '3.0' ]);
                                             break;
                                     }
                                 }
@@ -1060,19 +1057,6 @@ trait Mobile
 
                     if (!isset($this->data->os->name) || $this->data->os->name != 'Series60') {
                         $this->data->os->name = 'Series60';
-                        $this->data->os->version = null;
-                    }
-                }
-            }
-
-            if (! ($this->data->device->identified & Constants\Id::MATCH_UA)) {
-                $device = Data\DeviceModels::identify('s40', $this->data->device->model);
-                if ($device->identified) {
-                    $device->identified |= $this->data->device->identified;
-                    $this->data->device = $device;
-
-                    if (!isset($this->data->os->name) || $this->data->os->name != 'Series40') {
-                        $this->data->os->name = 'Series40';
                         $this->data->os->version = null;
                     }
                 }

@@ -42,7 +42,7 @@ trait Derive
                 $this->data->device->subtype = 'smart';
             }
 
-            if (in_array($this->data->os->getName(), [ 'Android', 'Bada', 'BlackBerry', 'BlackBerry OS', 'Firefox OS', 'iOS', 'iPhone OS', 'Kin OS', 'Maemo', 'MeeGo', 'Palm OS', 'Sailfish', 'Series60', 'Tizen', 'Ubuntu', 'Windows Mobile', 'Windows Phone', 'webOS' ])) {
+            if (in_array($this->data->os->getName(), [ 'Android', 'Bada', 'BlackBerry', 'BlackBerry OS', 'Firefox OS', 'iOS', 'iPhone OS', 'Kin OS', 'Maemo', 'MeeGo', 'Palm OS', 'Sailfish', 'Series60', 'Series80', 'Tizen', 'Ubuntu Touch', 'Windows Mobile', 'Windows Phone', 'webOS' ])) {
                 $this->data->device->subtype = 'smart';
             }
         }
@@ -89,6 +89,7 @@ trait Derive
     {
         if ($this->data->browser->name == 'Opera' && $this->data->device->type == Constants\DeviceType::TELEVISION) {
             $this->data->browser->name = 'Opera Devices';
+            $this->data->browser->version = null;
 
             if ($this->data->engine->getName() == 'Presto') {
                 switch (implode('.', array_slice(explode('.', $this->data->engine->getVersion()), 0, 2))) {
@@ -128,24 +129,9 @@ trait Derive
                     default:
                         unset($this->data->browser->version);
                 }
-            } else {
-                switch (explode('.', $this->data->browser->getVersion())[0]) {
-                    case '17':
-                        $this->data->browser->version = new Version([ 'value' => '4.0' ]);
-                        break;
-                    case '19':
-                        $this->data->browser->version = new Version([ 'value' => '4.1' ]);
-                        break;
-                    case '22':
-                        $this->data->browser->version = new Version([ 'value' => '4.2' ]);
-                        break;
-                    default:
-                        unset($this->data->browser->version);
-                }
             }
 
-            unset($this->data->os->name);
-            unset($this->data->os->version);
+            $this->data->os->reset();
         }
     }
 
@@ -153,22 +139,24 @@ trait Derive
 
     private function deriveBasedOnDeviceFlag()
     {
-        if ($this->data->device->flag == Constants\Flag::NOKIAX) {
+        $flag = $this->data->device->flag;
+
+        if ($flag == Constants\Flag::NOKIAX) {
             $this->data->os->name = 'Nokia X Platform';
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
 
             unset($this->data->os->version);
             unset($this->data->device->flag);
-            return;
         }
 
-        if ($this->data->device->flag == Constants\Flag::FIREOS) {
+        if ($flag == Constants\Flag::FIREOS) {
             $this->data->os->name = 'FireOS';
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
 
             if (isset($this->data->os->version) && isset($this->data->os->version->value)) {
                 switch ($this->data->os->version->value) {
                     case '2.3.3':
+                    case '2.3.4':
                         $this->data->os->version = new Version([ 'value' => '1' ]);
                         break;
                     case '4.0.3':
@@ -202,27 +190,24 @@ trait Derive
             }
 
             unset($this->data->device->flag);
-            return;
         }
 
-        if ($this->data->device->flag == Constants\Flag::GOOGLETV) {
+        if ($flag == Constants\Flag::GOOGLETV) {
             $this->data->os->name = 'Google TV';
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
 
             unset($this->data->os->version);
             unset($this->data->device->flag);
-            return;
         }
 
-        if ($this->data->device->flag == Constants\Flag::ANDROIDTV) {
+        if ($flag == Constants\Flag::ANDROIDTV) {
             $this->data->os->name = 'Android TV';
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
 
             unset($this->data->device->flag);
-            return;
         }
 
-        if ($this->data->device->flag == Constants\Flag::ANDROIDWEAR) {
+        if ($flag == Constants\Flag::ANDROIDWEAR) {
             $this->data->os->name = 'Android Wear';
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
             unset($this->data->os->version);
@@ -232,16 +217,13 @@ trait Derive
                 $this->data->browser->name = 'Wear Internet Browser';
                 $this->data->browser->using = null;
             }
-
-            return;
         }
 
-        if ($this->data->device->flag == Constants\Flag::GOOGLEGLASS) {
+        if ($flag == Constants\Flag::GOOGLEGLASS) {
             $this->data->os->family = new Family([ 'name' => 'Android' ]);
             unset($this->data->os->name);
             unset($this->data->os->version);
             unset($this->data->device->flag);
-            return;
         }
     }
 
@@ -298,80 +280,17 @@ trait Derive
             $this->data->browser->hidden = true;
         }
 
-        /* Derive iOS and OS X versions from Darwin */
-
-        if ($this->data->os->name == 'Darwin' && $this->data->device->type == Constants\DeviceType::MOBILE) {
-            $this->data->os->name = 'iOS';
-
-            switch (strstr($this->data->os->getVersion(), '.', true)) {
-                case '9':
-                    $this->data->os->version = new Version([ 'value' =>'1' ]);
+        /* Derive iOS and OS X aliases */
+ 
+        if ($this->data->os->name == 'iOS') {
+            if (!empty($this->data->os->version)) {
+                if ($this->data->os->version->is('<', '4')) {
                     $this->data->os->alias = 'iPhone OS';
-                    break;
-                case '10':
-                    $this->data->os->version = new Version([ 'value' =>'4' ]);
-                    break;
-                case '11':
-                    $this->data->os->version = new Version([ 'value' =>'5' ]);
-                    break;
-                case '13':
-                    $this->data->os->version = new Version([ 'value' =>'6' ]);
-                    break;
-                case '14':
-                    $this->data->os->version = new Version([ 'value' =>'7' ]);
-                    break;
-                case '15':
-                    $this->data->os->version = new Version([ 'value' =>'9' ]);
-                    break;
-                default:
-                    $this->data->os->version = null;
+                }
             }
         }
 
-        if ($this->data->os->name == 'Darwin' && $this->data->device->type == Constants\DeviceType::DESKTOP) {
-            $this->data->os->name = 'OS X';
-
-            switch (strstr($this->data->os->getVersion(), '.', true)) {
-                case '1':
-                    $this->data->os->version = new Version([ 'value' =>'10.0' ]);
-                    break;
-                case '5':
-                    $this->data->os->version = new Version([ 'value' =>'10.1' ]);
-                    break;
-                case '6':
-                    $this->data->os->version = new Version([ 'value' =>'10.2' ]);
-                    break;
-                case '7':
-                    $this->data->os->version = new Version([ 'value' =>'10.3' ]);
-                    break;
-                case '8':
-                    $this->data->os->version = new Version([ 'value' =>'10.4' ]);
-                    break;
-                case '9':
-                    $this->data->os->version = new Version([ 'value' =>'10.5' ]);
-                    break;
-                case '10':
-                    $this->data->os->version = new Version([ 'value' =>'10.6' ]);
-                    break;
-                case '11':
-                    $this->data->os->version = new Version([ 'value' =>'10.7' ]);
-                    break;
-                case '12':
-                    $this->data->os->version = new Version([ 'value' =>'10.8' ]);
-                    break;
-                case '13':
-                    $this->data->os->version = new Version([ 'value' =>'10.9' ]);
-                    break;
-                case '14':
-                    $this->data->os->version = new Version([ 'value' =>'10.10' ]);
-                    break;
-                case '15':
-                    $this->data->os->version = new Version([ 'value' =>'10.11' ]);
-                    break;
-                default:
-                    $this->data->os->version = null;
-            }
-
+        if ($this->data->os->name == 'OS X') {
             if (!empty($this->data->os->version)) {
                 if ($this->data->os->version->is('<', '10.7')) {
                     $this->data->os->alias = 'Mac OS X';
