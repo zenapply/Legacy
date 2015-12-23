@@ -2,16 +2,23 @@
 
 namespace WhichBrowser\Data;
 
+Manufacturers::$GENERIC = [
+    'LG Electronics'                            => 'LG',
+    'LGE'                                       => 'LG',
+    'TOSHIBA'                                   => 'Toshiba',
+    'SAMSUNG'                                   => 'Samsung',
+    'SHARP'                                     => 'Sharp',
+    'SONY'                                      => 'Sony',
+];
+
 Manufacturers::$TELEVISION = [
     'BANGOLUFSEN'                               => 'Bang & Olufsen',
     'CHANGHONG'                                 => 'Changhong',
     'inverto'                                   => 'Inverto',
-    'LG Electronics'                            => 'LG',
-    'LGE'                                       => 'LG',
-    'TOSHIBA'                                   => 'Toshiba',
+    'LOEWE'                                     => 'Loewe',
+    'MEDION'                                    => 'Medion',
     'SERAPHIC'                                  => 'Seraphic',
     'selevision'                                => 'Selevision',
-    'SHARP'                                     => 'Sharp',
     'smart'                                     => 'Smart',
     'Sky_worth'                                 => 'Skyworth',
     'TELEFUNKEN'                                => 'Telefunken',

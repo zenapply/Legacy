@@ -28,6 +28,7 @@ trait Browser
         /* Detect other specific desktop browsers */
         $this->detectSeamonkey($ua);
         $this->detectModernNetscape($ua);
+        $this->detectMosaic($ua);
         $this->detectKonqueror($ua);
 
         /* Detect other various mobile browsers */
@@ -300,6 +301,16 @@ trait Browser
 
     private function detectExplorer($ua)
     {
+        if (preg_match('/\(IE ([0-9.]*)/u', $ua, $match)) {
+            $this->data->browser->name = 'Internet Explorer';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+        }
+
+        if (preg_match('/Browser\/IE([0-9.]*)/u', $ua, $match)) {
+            $this->data->browser->name = 'Internet Explorer';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+        }
+
         if (preg_match('/MSIE/u', $ua)) {
             $this->data->browser->name = 'Internet Explorer';
 
@@ -328,16 +339,6 @@ trait Browser
                     $this->data->os->name = 'OS X';
                 }
             }
-        }
-
-        if (preg_match('/\(IE ([0-9.]*)/u', $ua, $match)) {
-            $this->data->browser->name = 'Internet Explorer';
-            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
-        }
-
-        if (preg_match('/Browser\/IE([0-9.]*)/u', $ua, $match)) {
-            $this->data->browser->name = 'Internet Explorer';
-            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
         }
 
         if (preg_match('/Trident\/[789][^\)]+; rv:([0-9.]*)\)/u', $ua, $match)) {
@@ -743,6 +744,31 @@ trait Browser
     }
 
 
+    /* Mosaic */
+
+    private function detectMosaic($ua)
+    {
+        if (preg_match('/NCSA[ _]Mosaic\/([0-9.]*)/u', $ua, $match)) {
+            $this->data->browser->name = 'NCSA Mosaic';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+            $this->data->browser->stock = false;
+        }
+
+        if (preg_match('/MosaicView\/([0-9.]*)/u', $ua, $match)) {
+            $this->data->browser->name = 'Spyglass Mosaic';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+            $this->data->browser->stock = false;
+        }
+
+        if (preg_match('/VMS_Mosaic\/([0-9.]*)/u', $ua, $match)) {
+            $this->data->browser->name = 'VMS Mosaic';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+            $this->data->browser->stock = false;
+        }
+
+    }
+
+
     /* UC Browser */
 
     private function detectUC($ua)
@@ -805,6 +831,7 @@ trait Browser
             if (preg_match('/\(Symbian;/u', $ua)) {
                 $this->data->os->name = 'Series60';
                 $this->data->os->version = null;
+                $this->data->os->family = new Family([ 'name' => 'Symbian' ]);
 
                 if (preg_match('/S60 V([0-9])/u', $ua, $match)) {
                     $this->data->os->version = new Version([ 'value' => $match[1] ]);
@@ -814,7 +841,7 @@ trait Browser
                     $this->data->device->model = $match[1];
                     $this->data->device->identified |= Constants\Id::PATTERN;
 
-                    $device = Data\DeviceModels::identify('s60', $match[1]);
+                    $device = Data\DeviceModels::identify('symbian', $match[1]);
 
                     if ($device->identified) {
                         $device->identified |= $this->data->device->identified;
@@ -978,6 +1005,16 @@ trait Browser
                 $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             }
 
+            /* Detect device type based on NetFront identifier */
+
+            if (preg_match('/DigitalMediaPlayer/u', $ua)) {
+                $this->data->device->type = Constants\DeviceType::MEDIA;
+            }
+
+            if (preg_match('/PDA/u', $ua)) {
+                $this->data->device->type = Constants\DeviceType::PDA;
+            }
+
             if (preg_match('/(InettvBrowser|HbbTV)/u', $ua)) {
                 $this->data->device->type = Constants\DeviceType::TELEVISION;
             }
@@ -985,15 +1022,19 @@ trait Browser
             if (preg_match('/Kindle/u', $ua)) {
                 $this->data->device->type = Constants\DeviceType::EREADER;
             }
+
+            /* Detect OS based on NetFront identifier */
+
+            if (preg_match('/NF[0-9][0-9](?:WMPRO|PPC)\//ui', $ua, $match)) {
+                if (!$this->data->isOs('Windows Mobile')) {
+                    $this->data->os->reset([
+                        'name' => 'Windows Mobile'
+                    ]);
+                }
+            }
         }
 
-        if (preg_match('/Browser\/NF([0-9.]*)/ui', $ua, $match)) {
-            $this->data->browser->name = 'NetFront';
-            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
-            $this->data->device->type = Constants\DeviceType::MOBILE;
-        }
-
-        if (preg_match('/Browser\/NetFont-([0-9.]*)/ui', $ua, $match)) {
+        if (preg_match('/Browser\/(?:NF|NetFr?ont-)([0-9.]*)/ui', $ua, $match)) {
             $this->data->browser->name = 'NetFront';
             $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             $this->data->device->type = Constants\DeviceType::MOBILE;
@@ -1023,24 +1064,42 @@ trait Browser
 
     private function detectObigo($ua)
     {
+        $processObigoVersion = function ($version) {
+            $result = [
+                'value' => $version
+            ];
+
+            if (preg_match('/([0-9])[A-Z]/', $version, $match)) {
+                $result['value'] = intval($match[1]);
+                $result['alias'] = $version;
+            }
+
+            return $result;
+        };
+
         if (preg_match('/(?:Obigo|Teleca)/ui', $ua)) {
             $this->data->browser->name = 'Obigo';
 
             if (preg_match('/Obigo\/0?([0-9.]+)/iu', $ua, $match)) {
-                $this->data->browser->version = new Version([ 'value' => $match[1] ]);
-            } elseif (preg_match('/TelecaBrowser\/([A-Z]+)0?([0-9.]+)/iu', $ua, $match)) {
+                $this->data->browser->version = new Version($processObigoVersion($match[1]));
+            } elseif (preg_match('/TelecaBrowser\/(WAP|[A-Z])0?([0-9.]+[A-Z]?)/iu', $ua, $match)) {
                 $this->data->browser->name = 'Obigo ' . $match[1];
-                $this->data->browser->version = new Version([ 'value' => $match[2] ]);
-            } elseif (preg_match('/(?:Obigo(?:InternetBrowser|[- ]Browser)?|Teleca)\/([A-Z]+)0?([0-9.]+)/ui', $ua, $match)) {
+                $this->data->browser->version = new Version($processObigoVersion($match[2]));
+            } elseif (preg_match('/(?:Obigo(?:InternetBrowser|[- ]Browser)?|Teleca)\/(WAP|[A-Z])[0O]?([0-9.]+[A-Z]?)/ui', $ua, $match)) {
                 $this->data->browser->name = 'Obigo ' . $match[1];
-                $this->data->browser->version = new Version([ 'value' => $match[2] ]);
-            } elseif (preg_match('/(?:Obigo|Teleca)[- ]([A-Z]+)0?([0-9.]+)(?:[A-Z][0-9])?(?:[\/;]|$)/ui', $ua, $match)) {
+                $this->data->browser->version = new Version($processObigoVersion($match[2]));
+            } elseif (preg_match('/(?:Obigo|Teleca)[- ]([WAP|[A-Z])0?([0-9.]+[A-Z]?)(?:[0-9])?(?:[\/;]|$)/ui', $ua, $match)) {
                 $this->data->browser->name = 'Obigo ' . $match[1];
-                $this->data->browser->version = new Version([ 'value' => $match[2] ]);
-            } elseif (preg_match('/Browser\/(?:Obigo|Teleca)[_-](?:Browser\/)?([A-Z]+)0?([0-9.]+)/ui', $ua, $match)) {
+                $this->data->browser->version = new Version($processObigoVersion($match[2]));
+            } elseif (preg_match('/Browser\/(?:Obigo|Teleca)[_-](?:Browser\/)?(WAP|[A-Z])0?([0-9.]+[A-Z]?)/ui', $ua, $match)) {
                 $this->data->browser->name = 'Obigo ' . $match[1];
-                $this->data->browser->version = new Version([ 'value' => $match[2] ]);
+                $this->data->browser->version = new Version($processObigoVersion($match[2]));
             }
+        }
+
+        if (preg_match('/(Q)0?([0-9][A-Z])/u', $ua, $match)) {
+            $this->data->browser->name = 'Obigo ' . $match[1];
+            $this->data->browser->version = new Version($processObigoVersion($match[2]));
         }
     }
 
@@ -1507,7 +1566,7 @@ trait Browser
 
         /* Mercury */
 
-        if (preg_match('/Mercury\/([0-9\.]+)/u', $ua, $match)) {
+        if (preg_match('/(?:^| )Mercury\/([0-9\.]+)/u', $ua, $match)) {
             $version = $match[1];
             if (preg_match('/^[0-9][0-9][0-9]$/u', $version)) {
                 $version = $version[0] . '.' . $version[1] . '.' . $version[2];
@@ -1520,10 +1579,10 @@ trait Browser
 
         /* iBrowser */
 
-        if (preg_match('/(iBrowser)\/([0-9.]*)/u', $ua, $match) && !preg_match('/OviBrowser/u', $ua)) {
+        if (preg_match('/(?:^| )iBrowser\/([0-9.]*)/u', $ua, $match)) {
             $this->data->browser->name = 'iBrowser';
 
-            $version = $match[2];
+            $version = $match[1];
             if (preg_match('/^[0-9][0-9]$/u', $version)) {
                 $version = $version[0] . '.' . $version[1];
             }
@@ -1540,17 +1599,46 @@ trait Browser
 
         /* Puffin */
 
-        if (preg_match('/Puffin\/([0-9.]*)/u', $ua, $match)) {
+        if (preg_match('/Puffin\/([0-9.]+)([IA])?([PT])?/u', $ua, $match)) {
             $this->data->browser->name = 'Puffin';
-            $this->data->browser->version = new Version([ 'value' => $match[1], 'details' => 2 ]);
+            $this->data->browser->version = new Version([ 'value' => $match[1], 'details' => (intval(substr(strrchr($match[1], '.'), 1)) > 99 ? -1 : null) ]);
             $this->data->browser->mode = 'proxy';
             $this->data->browser->channel = '';
 
-            $this->data->device->type = Constants\DeviceType::MOBILE;
+            if (isset($match[2])) {
+                switch ($match[2]) {
+                    case 'A':
+                        if (!$this->data->isOs('Android')) {
+                            $this->data->os->reset([ 'name' => 'Android' ]);
+                        }
+                        break;
 
-            if ($this->data->os->name == 'Linux') {
-                $this->data->os->name = null;
-                $this->data->os->version = null;
+                    case 'I':
+                        if (!$this->data->isOs('iOS')) {
+                            $this->data->os->reset([ 'name' => 'iOS' ]);
+                        }
+                        break;
+                }
+            }
+
+            if (isset($match[3])) {
+                switch ($match[3]) {
+                    case 'P':
+                        $this->data->device->type = Constants\DeviceType::MOBILE;
+                        if ($this->data->os->name == 'iOS' && empty($this->data->device->model)) {
+                            $this->data->device->manufacturer = 'Apple';
+                            $this->data->device->model = 'iPhone';
+                        }
+                        break;
+
+                    case 'T':
+                        $this->data->device->type = Constants\DeviceType::TABLET;
+                        if ($this->data->os->name == 'iOS' && empty($this->data->device->model)) {
+                            $this->data->device->manufacturer = 'Apple';
+                            $this->data->device->model = 'iPad';
+                        }
+                        break;
+                }
             }
         }
 
@@ -1660,7 +1748,7 @@ trait Browser
 
         /* Xiino */
 
-        if (preg_match('/Xiino\/([^;]+);/u', $ua, $match)) {
+        if (preg_match('/Xiino\/([0-9.]+)/u', $ua, $match)) {
             $this->data->browser->name = 'Xiino';
             $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             $this->data->os->name = 'Palm OS';
@@ -1673,7 +1761,7 @@ trait Browser
             $this->data->browser->name = 'WebPro';
             $this->data->browser->version = null;
 
-            if (preg_match('/WebPro\/([0-9.]*)/u', $ua, $match)) {
+            if (preg_match('/WebPro\/?([0-9.]*)/u', $ua, $match)) {
                 $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             }
         }
@@ -1717,6 +1805,7 @@ trait Browser
 
             /* Media players */
             [ 'name' => 'iTunes',               'regexp' => '/iTunes\/(?:xaa.)?([0-9.]*)/u' ],
+            [ 'name' => 'iTunes',               'regexp' => '/iTunes-AppleTV\//u' ],
             [ 'name' => 'QuickTime',            'regexp' => '/QuickTime[\/\\\\](?:xaa.)?([0-9.]*)/u' ],
             [ 'name' => 'Bluefish',             'regexp' => '/bluefish ([0-9.]*)/u' ],
             [ 'name' => 'Songbird',             'regexp' => '/Songbird\/([0-9.]*)/u' ],
@@ -1732,20 +1821,26 @@ trait Browser
             [ 'name' => 'Microsoft Outlook Express',    'regexp' => '/Outlook-Express\/([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Lotus Notes',          'regexp' => '/Lotus-Notes\/([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Postbox',              'regexp' => '/Postbox[\/ ]([0-9.]*)/u', 'details' => 2 ],
+            [ 'name' => 'The Bat!',             'regexp' => '/The Bat! ([0-9.]*)/u', 'details' => 3 ],
 
             /* Feed readers */
             [ 'name' => 'Akregator',            'regexp' => '/Akregator\/([0-9.]*)/u' ],
             [ 'name' => 'Blogos',               'regexp' => '/Blogos\/([0-9.]*)/u', 'type' => Constants\DeviceType::MOBILE ],
+            [ 'name' => 'Cococ',                'regexp' => '/cococ\/([0-9.]*)/u' ],
             [ 'name' => 'FeedDemon',            'regexp' => '/FeedDemon\/([0-9.]*)/u' ],
-            [ 'name' => 'Feeddler',             'regexp' => '/FeeddlerRSS\/([0-9.]*)/u', 'type' => Constants\DeviceType::MOBILE ],
-            [ 'name' => 'Feeddler Pro',         'regexp' => '/FeeddlerPro\/([0-9.]*)/u', 'type' => Constants\DeviceType::MOBILE ],
+            [ 'name' => 'Feeddler',             'regexp' => '/FeeddlerRSS[ \/]([0-9.]*)/u' ],
+            [ 'name' => 'Feeddler Pro',         'regexp' => '/FeeddlerPro\/([0-9.]*)/u' ],
             [ 'name' => 'Liferea',              'regexp' => '/Liferea\/([0-9.]*)/u' ],
             [ 'name' => 'NewsBlur',             'regexp' => '/NewsBlur\/([0-9.]*)/u', 'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'Newsbeuter',           'regexp' => '/newsbeuter\/([0-9.]*)/u' ],
-            [ 'name' => 'Rss Bandit',           'regexp' => '/RssBandit\/([0-9.]*)/u' ],
-            [ 'name' => 'Rss Owl',              'regexp' => '/RSSOwl\/([0-9.]*)/u' ],
+            [ 'name' => 'JetBrains Omea Reader','regexp' => '/JetBrains Omea Reader ([0-9.]*)/u' ],
+            [ 'name' => 'RSS Bandit',           'regexp' => '/RssBandit\/([0-9.]*)/u' ],
+            [ 'name' => 'RSS Junkie',           'regexp' => '/RSS Junkie Daemon/u' ],
+            [ 'name' => 'RSS Owl',              'regexp' => '/RSSOwl\/([0-9.]*)/u' ],
             [ 'name' => 'Reeder',               'regexp' => '/Reeder\/([0-9.]*)/u' ],
             [ 'name' => 'ReedKit',              'regexp' => '/ReedKit\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
+            [ 'name' => 'Rome',                 'regexp' => '/Rome Client/u' ],
+            [ 'name' => 'jsRSS++',              'regexp' => '/jsRSS++\/([0-9.]*)/u' ],
 
             /* Social apps */
             [ 'name' => 'Facebook',             'regexp' => '/FBAN\/FBIOS/u' ],
@@ -1782,11 +1877,13 @@ trait Browser
             [ 'name' => 'ABrowse',              'regexp' => '/A[Bb]rowse ([0-9.]*)/u' ],
             [ 'name' => 'Abrowser',             'regexp' => '/Abrowser\/([0-9.]*)/u' ],
             [ 'name' => 'Acorn Browse',         'regexp' => '/Acorn Browse ([0-9.]+)/u'  ],
+            [ 'name' => 'Acorn Browse',         'regexp' => '/Acorn Phoenix ([0-9.]+)/u'  ],
             [ 'name' => 'AltiBrowser',          'regexp' => '/AltiBrowser\/([0-9.]*)/i' ],
             [ 'name' => 'AOL Desktop',          'regexp' => '/AOL ([0-9.]*); AOLBuild/i' ],
             [ 'name' => 'AOL Browser',          'regexp' => '/America Online Browser (?:[0-9.]*); rev([0-9.]*);/i' ],
             [ 'name' => 'Arachne',              'regexp' => '/Arachne\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Arora',                'regexp' => '/[Aa]rora\/([0-9.]*)/u' ],                         // see: www.arora-browser.org
+            [ 'name' => 'AvantGo',              'regexp' => '/AvantGo ([0-9.]+)/u' ],
             [ 'name' => 'Avant Browser',        'regexp' => '/Avant Browser/u' ],
             [ 'name' => 'Avant Browser',        'regexp' => '/Avant TriCore/u' ],
             [ 'name' => 'Aviator',              'regexp' => '/Aviator\/([0-9.]*)/u', 'details' => 1 ],
@@ -1807,11 +1904,13 @@ trait Browser
             [ 'name' => 'Byffox',               'regexp' => '/Byffox\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Camino',               'regexp' => '/Camino\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Canure',               'regexp' => '/Canure\/([0-9.]*)/u', 'details' => 3 ],
+            [ 'name' => 'CNF',                  'regexp' => '/CNF\/([0-9.]*)/u' ],
             [ 'name' => 'CometBird',            'regexp' => '/CometBird\/([0-9.]*)/u' ],
             [ 'name' => 'Comodo Dragon',        'regexp' => '/Comodo_Dragon\/([0-9.]*)/u', 'details' => 2 ],
             [ 'name' => 'Comodo Dragon',        'regexp' => '/Dragon\/([0-9.]*)/u', 'details' => 2 ],
             [ 'name' => 'Conkeror',             'regexp' => '/[Cc]onkeror\/([0-9.]*)/u' ],
             [ 'name' => 'CoolNovo',             'regexp' => '/(?:CoolNovo|CoolNovoChromePlus)\/([0-9.]*)/u', 'details' => 3, 'type' => Constants\DeviceType::DESKTOP ],
+            [ 'name' => 'Charon',               'regexp' => '/Charon/' ],
             [ 'name' => 'ChromePlus',           'regexp' => '/ChromePlus(?:\/([0-9.]*))?$/u', 'details' => 3, 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Cunaguaro',            'regexp' => '/Cunaguaro\/([0-9.]*)/u', 'details' => 3, 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'CuteBrowser',          'regexp' => '/CuteBrowser\/([0-9.]*)/u', 'details' => 2 ],
@@ -1819,6 +1918,7 @@ trait Browser
             [ 'name' => 'Daedalus',             'regexp' => '/Daedalus ([0-9.]*)/u', 'details' => 2 ],
             [ 'name' => 'Daum',                 'regexp' => '/DaumApps\/([0-9.]*)/u' ],
             [ 'name' => 'Daum',                 'regexp' => '/daumcafe\/([0-9.]*)/u' ],
+            [ 'name' => 'Digia @Web',           'regexp' => '/Digia @Web\/([0-9.]*)/u' ],
             [ 'name' => 'Dillo',                'regexp' => '/Dillo\/([0-9.]*)/u' ],
             [ 'name' => 'Demobrowser',          'regexp' => '/demobrowser\/([0-9.]*)/u' ],
             [ 'name' => 'Doga Rhodonit',        'regexp' => '/DogaRhodonit/u' ],
@@ -1829,6 +1929,8 @@ trait Browser
             [ 'name' => 'GNOME Web',            'regexp' => '/Epiphany\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'ELinks',               'regexp' => '/ELinks\/([0-9.]*[0-9])/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'EVM Browser',          'regexp' => '/EVMBrowser\/([0-9.]*)/u' ],
+            [ 'name' => 'EMOBILE Browser',      'regexp' => '/WWW Browser\/ver([0-9.]*)/u' ],
+            [ 'name' => 'EudoraWeb',            'regexp' => '/EudoraWeb ([0-9.]*)/u' ],
             [ 'name' => 'FireWeb',              'regexp' => '/FireWeb\/([0-9.]*)/u' ],
             [ 'name' => 'Flock',                'regexp' => '/Flock\/([0-9.]*)/u', 'details' => 3, 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'Galeon',               'regexp' => '/Galeon\/([0-9.]*)/u', 'details' => 3 ],
@@ -1861,11 +1963,12 @@ trait Browser
             [ 'name' => 'Motorola Internet Browser', 'regexp' => '/MIB\/([0-9.]*)/u' ],
             [ 'name' => 'iLunascape',           'regexp' => '/iLunascape\/([0-9.]*)/u', 'details' => 3 ],
             [ 'name' => 'Intermec Browser',     'regexp' => '/Intermec\/([0-9.]*)/u', 'details' => 2 ],
-            [ 'name' => 'Jig Browser',          'regexp' => '/jig browser(?: core|9i?)/u' ],
+            [ 'name' => 'Jig Browser',          'regexp' => '/jig browser(?: web| core|9i?)?;? ?([0-9.]+)?/u', 'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'MaCross Mobile',       'regexp' => '/MaCross\/([0-9.]*)/u' ],
             [ 'name' => 'Mammoth',              'regexp' => '/Mammoth\/([0-9.]*)/u' ],                                      // see: https://itunes.apple.com/cn/app/meng-ma-liu-lan-qi/id403760998?mt=8
             [ 'name' => 'Maxthon',              'regexp' => '/MxBrowser\/([0-9.]*)/u' ],
             [ 'name' => 'Maxthon',              'regexp' => '/MxBrowser-iPhone\/([0-9.]*)/u' ],
+            [ 'name' => 'MIUI Browser',         'regexp' => '/MiuiBrowser\/([0-9.]*)/u' ],
             [ 'name' => 'MixShark',             'regexp' => '/MixShark\/([0-9.]*)/u' ],
             [ 'name' => 'mlbrowser',            'regexp' => '/mlbrowser/u' ],
             [ 'name' => 'Motorola WebKit',      'regexp' => '/MotorolaWebKit(?:\/([0-9.]*))?/u', 'details' => 3 ],
@@ -1876,8 +1979,10 @@ trait Browser
             [ 'name' => 'OmniWeb',              'regexp' => '/OmniWeb/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'OneBrowser',           'regexp' => '/OneBrowser\/([0-9.]*)/u' ],
             [ 'name' => 'Openwave',             'regexp' => '/Openwave\/([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
+            [ 'name' => 'Openwave',             'regexp' => '/Openwave Mobile Browser ([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'Openwave',             'regexp' => '/UP\.Browser\/([a-z0-9.]*)/iu', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
             [ 'name' => 'Opera Oupeng',         'regexp' => '/Oupeng\/([0-9.]*)/u', 'details' => 2 ],
+            [ 'name' => 'Opera Oupeng',         'regexp' => '/OupengHD-([0-9.]*)/u', 'details' => 2 ],
             [ 'name' => 'Oregano',              'regexp' => '/Oregano ([0-9.]*)/u' ],
             [ 'name' => 'Orca',                 'regexp' => '/Orca\/([0-9.]*)/u' ],
             [ 'name' => 'Origyn',               'regexp' => '/Origyn Web Browser/u' ],
@@ -1889,6 +1994,7 @@ trait Browser
             [ 'name' => 'Qihoo 360',            'regexp' => '/QIHU THEWORLD/u' ],
             [ 'name' => 'QtCreator',            'regexp' => '/QtCreator\/([0-9.]*)/u' ],
             [ 'name' => 'QtQmlViewer',          'regexp' => '/QtQmlViewer/u' ],
+            [ 'name' => 'QtMiniBrowser',        'regexp' => '/QtMiniBrowser\/([0-9.]*)/u' ],
             [ 'name' => 'QtTestBrowser',        'regexp' => '/QtTestBrowser\/([0-9.]*)/u' ],
             [ 'name' => 'QtWeb',                'regexp' => '/QtWeb Internet Browser\/([0-9.]*)/u' ],
             [ 'name' => 'QupZilla',             'regexp' => '/QupZilla\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],
@@ -1898,6 +2004,7 @@ trait Browser
             [ 'name' => 'rekonq',               'regexp' => '/rekonq(?:\/([0-9.]*))?/u', 'type' => Constants\DeviceType::DESKTOP ],
             [ 'name' => 'RockMelt',             'regexp' => '/RockMelt\/([0-9.]*)/u', 'details' => 2 ],
             [ 'name' => 'SaaYaa Explorer',      'regexp' => '/SaaYaa/u', 'type' => Constants\DeviceType::DESKTOP ],
+            [ 'name' => 'Scope',                'regexp' => '/Scope\/([0-9.]*)/u', 'details' => 2 ],                                                // see: http://www.programmer.co.jp/scope.shtml
             [ 'name' => 'SEMC Browser',         'regexp' => '/SEMC-Browser\/([0-9.]*)/u' ],
             [ 'name' => 'Sleipnir',             'regexp' => '/Sleipnir\/([0-9.]*)/u', 'details' => 3 ],
             [ 'name' => 'SlimBoat',             'regexp' => '/SlimBoat\/([0-9.]*)/u' ],

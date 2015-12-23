@@ -245,7 +245,7 @@ trait Television
 
     private function detectSamsungTelevision($ua)
     {
-        if (preg_match('/SMART-TV/u', $ua)) {
+        if (preg_match('/(SMART-TV|SmartHub)/u', $ua)) {
             $this->data->device->manufacturer = 'Samsung';
             $this->data->device->series = 'Smart TV';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
@@ -290,6 +290,24 @@ trait Television
             $this->data->device->series = 'Blu-ray Player';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
             $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+
+        if (preg_match('/olleh tv;/u', $ua)) {
+            $this->data->device->manufacturer = 'Samsung';
+            $this->data->device->model = null;
+            $this->data->device->series = null;
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+
+            if (preg_match('/(SMT-[A-Z0-9]+)/u', $ua, $match)) {
+                $this->data->device->model = $match[1];
+                $this->data->device->identifier = $match[1];
+                $this->data->device->generic = false;
+            }
+
+            if ($this->data->device->model == "SMT-E5015") {
+                $this->data->device->model = 'Olleh SkyLife Smart Settopbox';
+            }
         }
     }
 
@@ -496,7 +514,7 @@ trait Television
 
         /* AppleTV */
 
-        if (preg_match('/AppleTV[0-9],[0-9]/u', $ua)) {
+        if (preg_match('/AppleTV/u', $ua)) {
             $this->data->os->reset();
 
             $this->data->device->manufacturer = 'Apple';

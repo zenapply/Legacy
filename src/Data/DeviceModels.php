@@ -19,7 +19,7 @@ class DeviceModels
     public static $PALMOS_MODELS = [];
     public static $S30PLUS_MODELS = [];
     public static $S40_MODELS = [];
-    public static $S60_MODELS = [];
+    public static $SYMBIAN_MODELS = [];
     public static $FEATURE_MODELS = [];
     public static $BLACKBERRY_MODELS = [];
     public static $IOS_MODELS = [];
@@ -56,8 +56,8 @@ class DeviceModels
                 return self::identifyList(self::$S30PLUS_MODELS, $model);
             case 's40':
                 return self::identifyList(self::$S40_MODELS, $model);
-            case 's60':
-                return self::identifyList(self::$S60_MODELS, $model);
+            case 'symbian':
+                return self::identifyList(self::$SYMBIAN_MODELS, $model);
             case 'palmos':
                 return self::identifyList(self::$PALMOS_MODELS, $model);
             case 'feature':
@@ -170,17 +170,18 @@ class DeviceModels
                 $device->model = self::applyMatches($match[1], $model, $pattern);
                 $device->identified = Constants\Id::MATCH_UA;
 
-                if (isset($match[2])) {
-                    if (is_array($match[2])) {
-                        $device->type = $match[2][0];
-                        $device->subtype = $match[2][1];
+                if (isset($match[2]) || isset($match['type'])) {
+                    $type = isset($match[2]) ? $match[2] : $match['type'];
+                    if (is_array($type)) {
+                        $device->type = $type[0];
+                        $device->subtype = $type[1];
                     } else {
-                        $device->type = $match[2];
+                        $device->type = $type;
                     }
                 }
 
-                if (isset($match[3])) {
-                    $device->flag = $match[3];
+                if (isset($match[3]) || isset($match['flag'])) {
+                    $device->flag = isset($match[3]) ? $match[3] : $match['flag'];
                 }
                 
                 if ($device->manufacturer == null && $device->model == null) {
@@ -266,6 +267,7 @@ class DeviceModels
         $s = preg_replace('/^(Sony ?Ericsson|Sony)/u', '', $s);
         $s = preg_replace('/^(Lenovo Lenovo|LNV-Lenovo|LENOVO-Lenovo)/u', 'Lenovo', $s);
         $s = preg_replace('/^Lenovo-/u', 'Lenovo', $s);
+        $s = preg_replace('/^Lenovo/u', 'Lenovo ', $s);
         $s = preg_replace('/^ZTE-/u', 'ZTE ', $s);
         $s = preg_replace('/^(LG)[ _\/]/u', '$1-', $s);
         $s = preg_replace('/^(HTC.+)\s[v|V][0-9.]+$/u', '$1', $s);
@@ -276,8 +278,10 @@ class DeviceModels
         $s = preg_replace('/^Moto([^\s])/u', '$1', $s);
 
         $s = preg_replace('/-?(orange(-ls)?|vodafone|bouygues|parrot|Kust|ls)$/iu', '', $s);
+        $s = preg_replace('/ (Mozilla|Opera|Obigo|Build|Java|PPC)$/iu', '', $s);
         $s = preg_replace('/http:\/\/.+$/iu', '', $s);
         $s = preg_replace('/^\s+|\s+$/u', '', $s);
+        $s = preg_replace('/\s+/u', ' ', $s);
 
         return $s;
     }

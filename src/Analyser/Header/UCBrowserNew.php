@@ -3,6 +3,7 @@
 namespace WhichBrowser\Analyser\Header;
 
 use WhichBrowser\Data;
+use WhichBrowser\Model\Family;
 use WhichBrowser\Model\Version;
 
 class UCBrowserNew
@@ -89,7 +90,7 @@ class UCBrowserNew
 
         if ($this->data->isOs('Series60')) {
             if (preg_match('/dv\((?:Nokia)?([^\)]*)\)/iu', $header, $match)) {
-                $device = Data\DeviceModels::identify('s60', $match[1]);
+                $device = Data\DeviceModels::identify('symbian', $match[1]);
 
                 if ($device) {
                     $this->data->device = $device;
@@ -122,7 +123,7 @@ class UCBrowserNew
     {
         $model = preg_replace('/^Nokia/iu', '', $model);
 
-        $device = Data\DeviceModels::identify('s60', $model);
+        $device = Data\DeviceModels::identify('symbian', $model);
         if ($device->identified) {
             $device->identified |= $this->data->device->identified;
             $this->data->device = $device;
@@ -130,6 +131,7 @@ class UCBrowserNew
             if (!isset($this->data->os->name) || $this->data->os->name != 'Series60') {
                 $this->data->os->name = 'Series60';
                 $this->data->os->version = null;
+                $this->data->os->family = new Family([ 'name' => 'Symbian' ]);
             }
 
             return true;

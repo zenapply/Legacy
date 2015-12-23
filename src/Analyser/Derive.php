@@ -225,10 +225,40 @@ trait Derive
             unset($this->data->os->version);
             unset($this->data->device->flag);
         }
+
+        if ($flag == Constants\Flag::UIQ) {
+            unset($this->data->device->flag);
+
+            if (!$this->data->isOs('UIQ')) {
+                $this->data->os->name = 'UIQ';
+                unset($this->data->os->version);
+            }
+        }
+
+        if ($flag == Constants\Flag::S60) {
+            unset($this->data->device->flag);
+
+            if (!$this->data->isOs('Series60')) {
+                $this->data->os->name = 'Series60';
+                unset($this->data->os->version);
+            }
+        }
+
+        if ($flag == Constants\Flag::MOAPS) {
+            unset($this->data->device->flag);
+            $this->data->os->name = 'MOAP(S)';
+            unset($this->data->os->version);
+        }
     }
 
     private function deriveBasedOnOperatingSystem()
     {
+        /* Derive the default browser on Windows Mobile */
+
+        if ($this->data->os->name == 'Windows Mobile' && $this->data->isBrowser('Internet Explorer')) {
+            $this->data->browser->name = 'Mobile Internet Explorer';
+        }
+
         /* Derive the default browser on Android */
 
         if ($this->data->os->name == 'Android' && !isset($this->data->browser->using) && !isset($this->data->browser->name) && $this->data->browser->stock) {
