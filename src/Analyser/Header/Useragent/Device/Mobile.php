@@ -77,7 +77,7 @@ trait Mobile
             return;
         }
 
-        if (preg_match('/Nokia-?([^\/\)]+)/ui', $ua, $match)) {
+        if (preg_match('/Nokia[- \/]?([^\/\);]+)/ui', $ua, $match)) {
 
             if ($match[1] == 'Browser') {
                 return;
@@ -385,12 +385,7 @@ trait Mobile
             'manufacturer'  => 'HTC'
         ]);
 
-        $this->data->device->identifyModel('/HUAWEI[\s_-]?([^\/\)\()]*)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'Huawei'
-        ]);
-
-        $this->data->device->identifyModel('/Huawei\/1.0\/0?(?:Huawei)?([^\/]+)\//ui', $ua, [
+        $this->data->device->identifyModel('/HUAWEI[\s_-]?([^\/\)\()]+)/ui', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Huawei'
         ]);
@@ -400,14 +395,9 @@ trait Mobile
             'manufacturer'  => 'Karbonn'
         ]);
 
-        $this->data->device->identifyModel('/KYOCERA\/([^\s\/]+)/ui', $ua, [
+        $this->data->device->identifyModel('/KWC-([^\s\/]+)/ui', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Kyocera'
-        ]);
-
-        $this->data->device->identifyModel('/JRC\/([^\s\/,]+)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'JRC'
         ]);
 
         $this->data->device->identifyModel('/KONKA[-_]?([^\s]+)/ui', $ua, [
@@ -440,7 +430,7 @@ trait Mobile
             'manufacturer'  => 'LG'
         ]);
 
-        $this->data->device->identifyModel('/LGE?(?:\/|-|_)([^\s\)\-]+)/ui', $ua, [
+        $this->data->device->identifyModel('/LGE?(?:\/|-|_)([^\s\)\-\[\/]+)/ui', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'LG'
         ]);
@@ -493,6 +483,11 @@ trait Mobile
             'manufacturer'  => 'Oppo'
         ]);
 
+        $this->data->device->identifyModel('/Panasonic-([^\/_]+)/ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'manufacturer'  => 'Panasonic'
+        ]);
+
         $this->data->device->identifyModel('/Pantech-?([^\/_]+)/ui', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Pantech'
@@ -521,12 +516,7 @@ trait Mobile
             'manufacturer'  => 'Samsung'
         ]);
 
-        $this->data->device->identifyModel('/SANYO\/([^\/]+)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'Sanyo'
-        ]);
-
-        $this->data->device->identifyModel('/SIE-([A-Z]+[0-9]+)/ui', $ua, [
+        $this->data->device->identifyModel('/(?:Siemens |SIE-)([A-Z]+[0-9]+)/ui', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Siemens'
         ]);
@@ -536,7 +526,12 @@ trait Mobile
             'manufacturer'  => 'Sony Ericsson'
         ]);
 
-        $this->data->device->identifyModel('/SonyEricsson([^\/\)]+)/iu', $ua, [
+        $this->data->device->identifyModel('/sony-ericsson ([A-Z][0-9]+[a-z])/u', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'manufacturer'  => 'Sony Ericsson'
+        ]);
+
+        $this->data->device->identifyModel('/SonyEricsson ?([^\/\);]+)/iu', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Sony Ericsson',
             'model'         => function ($model) {
@@ -586,7 +581,7 @@ trait Mobile
             'manufacturer'  => 'TiPhone'
         ]);
 
-        $this->data->device->identifyModel('/Toshiba[\/-]([^\/-]*)/ui', $ua, [
+        $this->data->device->identifyModel('/Toshiba[-\/]([^\/-]*)/u', $ua, [
             'type'          => Constants\DeviceType::MOBILE,
             'manufacturer'  => 'Toshiba'
         ]);
@@ -633,51 +628,33 @@ trait Mobile
             return;
         }
 
-        /* First identify it based on carrier */
+        if ($this->data->os->isFamily('Android')) {
+            return;
+        }
 
-        $this->data->device->identifyModel('/\(([A-Z]+[0-9]+[A-Z])[^;]*; ?FOMA/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'DoCoMo'
-        ]);
+        /* Sometimes DoCoMo UA strings are (partially) encoded */
 
-        $this->data->device->identifyModel('/DoCoMo\/[0-9].0[\/\s]([0-9A-Z]+)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'DoCoMo'
-        ]);
+        if (preg_match('/^DoCoMo/u', $ua)) {
+            $ua = preg_replace_callback(
+                "#\\\x([0-9A-Fa-f]{2})#",
+                function ($m) {
+                    return chr(hexdec($m[1]));
+                },
+                $ua
+            );
+        }
 
-        $this->data->device->identifyModel('/NTTDoCoMo ([0-9A-Z]+)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'DoCoMo'
-        ]);
-
-        $this->data->device->identifyModel('/J-PHONE\/[^\/]+\/([^\/_]+)/u', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'Softbank'
-        ]);
-
-        $this->data->device->identifyModel('/SoftBank\/[^\/]+\/([^\/]+)\//u', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'Softbank'
-        ]);
-
-        $this->data->device->identifyModel('/(KDDI-[^\s\);]+)/ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'KDDI'
-        ]);
-
-        $this->data->device->identifyModel('/Vodafone\/[0-9.]+\/V([0-9]+[A-Z]+)[^\/]*\//ui', $ua, [
-            'type'          => Constants\DeviceType::MOBILE,
-            'manufacturer'  => 'Vodafone'
-        ]);
-
-
-        /* Then identify it based on id */
+        /* First identify it based on id */
 
         $model = null;
         $manufacturer = null;
+        $carrier = null;
+        $falsepositive = false;
 
         $ids = [
             'CA'    => 'Casio',
+            'DL'    => 'Dell',
+            'ER'    => 'Ericsson',
             'HT'    => 'HTC',
             'HW'    => 'Huawei',
             'IA'    => 'Inventec',
@@ -686,8 +663,11 @@ trait Mobile
             'NK'    => 'Nokia',
             'SA'    => 'Sanyo',
             'SC'    => 'Samsung',
+            'SS'    => 'Samsung',
             'SH'    => 'Sharp',
-            'SO'    => 'Sony Ericsson',
+            'SE'    => 'Sony Ericsson',
+            'SO'    => 'Sony',
+            'ZT'    => 'ZTE',
             'F'     => 'Fujitsu',
             'D'     => 'Mitsubishi',
             'J'     => 'JRC',
@@ -696,38 +676,90 @@ trait Mobile
             'M'     => 'Motorola',
             'N'     => 'NEC',
             'P'     => 'Panasonic',
-            'T'     => 'Toshiba'
+            'T'     => 'Toshiba',
+            'Z'     => 'ZTE',
         ];
 
-        if (preg_match('/[\s\/\-\(;]((' . implode('|', array_keys($ids)) . ')[0-9]{3,3}[a-z]+[A-Z]*)/u', $ua, $match)) {
+        if (preg_match('/(?:^|[\s\/\-\(;])((' . implode('|', array_keys($ids)) . ')[0-9]{3,3}[a-z]+[A-Z]*)/u', $ua, $match)) {
             $model = $match[1];
             $manufacturer = $match[2];
+            $carrier = 'DoCoMo';
+        }
+
+        if (preg_match('/(?:; |\()((' . implode('|', array_keys($ids)) . ')[0-9]{2,2}[A-Z][0-9]?)[\);]/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+            $carrier = 'DoCoMo';
+        }
+
+        if (preg_match('/DoCoMo\/[0-9].0 ((' . implode('|', array_keys($ids)) . ')[0-9]{2,2}[A-Z][0-9]?)\(/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+            $carrier = 'DoCoMo';
+        }
+
+        if (preg_match('/DoCoMo\/[0-9].0[\/\s](?:MST_v_)?((' . implode('|', array_keys($ids)) . ')[1-9][0-9]{3,3}[A-Z]?)/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+            $carrier = 'DoCoMo';
+        }
+
+        if (preg_match('/[\/\(]([SHW][0-9]{2,2}(' . implode('|', array_keys($ids)) . '))[\/;]/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+            $carrier = 'EMOBILE';
+        }
+
+        if (preg_match('/\) ([SHW][0-9]{2,2}(' . implode('|', array_keys($ids)) . '))$/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+            $carrier = 'EMOBILE';
         }
 
         if (preg_match('/[\s\/\-\(;](J-(' . implode('|', array_keys($ids)) . ')[0-9]{2,2})/u', $ua, $match)) {
             $model = $match[1];
             $manufacturer = $match[2];
+            $carrier = 'Softbank';
         }
 
-        if (preg_match('/[\s\/\-\(;]((?:V|DM|WX)?[0-9]{3,3}(' . implode('|', array_keys($ids)) . '))/u', $ua, $match)) {
+        if (preg_match('/(?:^|; |\/)([0-9]{3,3}(' . implode('|', array_keys($ids)) . '))[\/\)]/u', $ua, $match)) {
             $model = $match[1];
             $manufacturer = $match[2];
+            $carrier = 'Softbank';
         }
 
-        if (preg_match('/[\s\/\-\(;]([SHW][0-9]{2,2}(' . implode('|', array_keys($ids)) . '))/u', $ua, $match)) {
+        if (preg_match('/(?:^|[\s\/\-\(;])((V|DM|WX)[0-9]{3,3}(' . implode('|', array_keys($ids)) . '))/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[3];
+
+            switch ($match[2]) {
+                case 'V':
+                    $carrier = 'Softbank';
+                    break;
+                case 'DM':
+                    $carrier = 'Disney Mobile';
+                    break;
+                case 'WX':
+                    $carrier = 'Willcom';
+                    break;
+            }
+        }
+
+        if (preg_match('/(AH-(' . implode('|', array_keys($ids)) . ')[1-9][0-9]{3,3}[A-Z]?)/u', $ua, $match)) {
             $model = $match[1];
             $manufacturer = $match[2];
+            $carrier = 'Willcom';
         }
 
-        if (preg_match('/[\s\/\-\(;]((' . implode('|', array_keys($ids)) . ')[0-9]{2,2}[A-Z])/u', $ua, $match)) {
-            $model = $match[1];
-            $manufacturer = $match[2];
+        if (in_array($model, [ '360SE' ])) {
+            $falsepositive = true;
         }
 
-        if (!empty($model) && !empty($manufacturer)) {
+        if (!$falsepositive && !empty($model) && !empty($manufacturer)) {
             $this->data->device->reset([
                 'type'      => Constants\DeviceType::MOBILE,
-                'model'     => $model
+                'model'     => $model,
+                'carrier'   => $carrier
             ]);
             
             if (array_key_exists($manufacturer, $ids)) {
@@ -747,44 +779,142 @@ trait Mobile
                     $this->data->device->flag = Constants\Flag::MOAPS;
                     break;
             }
+
+            return;
+        }
+
+        /* Then KDDI model number */
+
+        $ids = [
+            'CA'    => 'Casio',
+            'DE'    => 'Denso',
+            'PT'    => 'Pantech',
+            'SA'    => 'Sanyo',
+            'ST'    => 'Sanyo',
+            'SH'    => 'Sharp',
+            'H'     => 'Hitachi',
+            'K'     => 'Kyocera',
+            'P'     => 'Panasonic',
+            'S'     => 'Sony Ericsson',
+            'T'     => 'Toshiba'
+        ];
+
+        if (preg_match('/(?:^|KDDI-)(W[0-9]{2,2}(' . implode('|', array_keys($ids)) . '))[;\)\s\/]/u', $ua, $match)) {
+            $model = $match[1];
+            $manufacturer = $match[2];
+
+            $this->data->device->reset([
+                'type'      => Constants\DeviceType::MOBILE,
+                'model'     => $model,
+                'carrier'   => 'au'
+            ]);
+
+            if (array_key_exists($manufacturer, $ids)) {
+                $this->data->device->manufacturer = $ids[$manufacturer];
+            }
+
+            $this->data->device->identified |= Constants\Id::PATTERN;
+            return;
         }
 
         /* Then identify it based on KDDI id */
 
         $ids = [
             'CA'    => 'Casio',
+            'DN'    => 'Denso',
+            'ER'    => 'Ericsson',
             'FJ'    => 'Fujitsu',
             'HI'    => 'Hitachi',
             'KC'    => 'Kyocera',
             'MA'    => 'Panasonic',
+            'MI'    => 'Mitsubishi',
             'PT'    => 'Pantech',
             'SA'    => 'Sanyo',
             'ST'    => 'Sanyo',
+            'SY'    => 'Sanyo',
             'SH'    => 'Sharp',
             'SN'    => 'Sony Ericsson',
             'TS'    => 'Toshiba'
         ];
 
-        if (preg_match('/[\s\/\-\(;]((' . implode('|', array_keys($ids)) . ')[0-9][0-9A-Z])[;\)\s]/u', $ua, $match)) {
-            $model = $match[1];
-            $manufacturer = $match[2];
+        if (preg_match('/(?:^|KDDI-|UP\. ?Browser\/[0-9\.]+-|; )((' . implode('|', array_keys($ids)) . ')(?:[0-9][0-9]|[A-Z][0-9]|[0-9][A-Z]))($|[;\)\s])/ui', $ua, $match)) {
+            $model = strtoupper($match[1]);
+            $manufacturer = strtoupper($match[2]);
+            $falsepositive = false;
 
-            $this->data->device->reset([
-                'type'      => Constants\DeviceType::MOBILE,
-                'model'     => 'KDDI-' . $model
-            ]);
-            
-            if (array_key_exists($manufacturer, $ids)) {
-                $this->data->device->manufacturer = $ids[$manufacturer];
-
-                $device = Data\DeviceModels::identify('feature', 'KDDI-' . $model);
-                if ($device->identified) {
-                    $device->identified |= $this->data->device->identified;
-                    $this->data->device = $device;
-                }
+            if (in_array($model, [ 'MAM2', 'MAM3' ])) {
+                $falsepositive = true;
             }
 
-            $this->data->device->identified |= Constants\Id::PATTERN;
+            if (!$falsepositive) {
+                $this->data->device->reset([
+                    'type'      => Constants\DeviceType::MOBILE,
+                    'model'     => $model,
+                    'carrier'   => 'au'
+                ]);
+                
+                if (array_key_exists($manufacturer, $ids)) {
+                    $this->data->device->manufacturer = $ids[$manufacturer];
+
+                    $device = Data\DeviceModels::identify('kddi', $model);
+                    if ($device->identified) {
+                        $device->identified |= $this->data->device->identified;
+                        $device->carrier = 'au';
+                        $this->data->device = $device;
+                    }
+                }
+
+                $this->data->device->identified |= Constants\Id::PATTERN;
+                return;
+            }
+        }
+
+
+        /* Finally identify it based on carrier */
+
+        $this->data->device->identifyModel('/\(([A-Z]+[0-9]+[A-Z])[^;]*; ?FOMA/ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'DoCoMo'
+        ]);
+
+        $this->data->device->identifyModel('/\(FOMA ([^;]+)+;/u', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'DoCoMo'
+        ]);
+
+        $this->data->device->identifyModel('/DoCoMo\/[0-9].0[\/\s]([0-9A-Z]+)/ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'DoCoMo'
+        ]);
+
+        $this->data->device->identifyModel('/NTTDoCoMo ([0-9A-Z]+)/ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'DoCoMo'
+        ]);
+
+        $this->data->device->identifyModel('/J-PHONE\/[^\/]+\/([^\/_]+)/u', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'Softbank'
+        ]);
+
+        $this->data->device->identifyModel('/SoftBank\/[^\/]+\/([^\/]+)\//u', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'Softbank'
+        ]);
+
+        $this->data->device->identifyModel('/Vodafone\/[0-9.]+\/V([0-9]+[A-Z]+)[^\/]*\//ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'Softbank'
+        ]);
+
+        $this->data->device->identifyModel('/(KDDI-[^\s\)\.;]{4,})/ui', $ua, [
+            'type'          => Constants\DeviceType::MOBILE,
+            'carrier'       => 'au'
+        ]);
+
+
+        if (!empty($this->data->device->model)) {
+            $this->identifyBasedOnId($this->data->device->model);
         }
     }
 

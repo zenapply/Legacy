@@ -9,7 +9,7 @@ trait Gaming
 {
     private function detectGaming($ua)
     {
-        if (preg_match('/Nintendo/iu', $ua)) {
+        if (preg_match('/Nintendo/iu', $ua) || preg_match('/Nitro/iu', $ua)) {
             $this->detectNintendo($ua);
         }
 
@@ -56,7 +56,7 @@ trait Gaming
 
         /* DS */
 
-        if (preg_match('/Nintendo DS/u', $ua)) {
+        if (preg_match('/Nintendo DS/u', $ua) || preg_match('/Nitro.*Opera/u', $ua)) {
             $this->data->os->reset();
             $this->data->device->setIdentification([
                 'manufacturer'  =>  'Nintendo',
@@ -140,6 +140,19 @@ trait Gaming
             if (preg_match('/VTE\//u', $ua)) {
                 $this->data->device->model = 'Playstation TV';
             }
+        }
+
+        /* PlayStation 2 */
+
+        if (preg_match('/Playstation2/u', $ua)) {
+            $this->data->os->reset();
+
+            $this->data->device->setIdentification([
+                'manufacturer'  =>  'Sony',
+                'model'         =>  'Playstation 2',
+                'type'          =>  Constants\DeviceType::GAMING,
+                'subtype'       =>  Constants\DeviceSubType::CONSOLE
+            ]);
         }
 
         /* PlayStation 3 */

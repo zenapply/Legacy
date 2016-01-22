@@ -4,7 +4,7 @@ namespace WhichBrowser\Analyser\Header;
 
 class Useragent
 {
-    use Useragent\Os, Useragent\Device, Useragent\Browser, Useragent\Engine, Useragent\Bot;
+    use Useragent\Os, Useragent\Device, Useragent\Browser, Useragent\Using, Useragent\Engine, Useragent\Bot;
 
     public function __construct($header, &$data)
     {
@@ -19,6 +19,7 @@ class Useragent
         $this->detectOperatingSystem($header)
              ->detectDevice($header)
              ->detectBrowser($header)
+             ->detectUsing($header)
              ->detectEngine($header)
              ->detectBot($header);
 
@@ -26,5 +27,12 @@ class Useragent
 
         $this->refineBrowser($header)
              ->refineOperatingSystem($header);
+    }
+
+    private function removeKnownPrefixes($ua)
+    {
+        $ua = preg_replace('/^OneBrowser\/[0-9.]+\//', '', $ua);
+        $ua = preg_replace('/^MQQBrowser\/[0-9.]+\//', '', $ua);
+        return $ua;
     }
 }

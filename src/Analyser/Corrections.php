@@ -25,6 +25,10 @@ trait Corrections
             $this->hideBrowserOnDeviceTypeTelevision();
         }
 
+        if (isset($this->data->browser->name) && $this->data->device->type == Constants\DeviceType::GAMING) {
+            $this->hideBrowserOnDeviceTypeGaming();
+        }
+
         if ($this->data->device->type == Constants\DeviceType::TELEVISION) {
             $this->hideOsOnDeviceTypeTelevision();
         }
@@ -92,6 +96,10 @@ trait Corrections
 
     private function hideBrowserBasedOnOperatingSystem()
     {
+        if ($this->data->os->name == 'iOS' && $this->data->browser->name == 'Safari') {
+            $this->data->browser->hidden = true;
+        }
+
         if ($this->data->os->name == 'Series60' && $this->data->browser->name == 'Internet Explorer') {
             $this->data->browser->reset();
             $this->data->engine->reset();
@@ -112,6 +120,13 @@ trait Corrections
             $this->data->browser->reset([
                 'family' => isset($this->data->browser->family) ? $this->data->browser->family : null
             ]);
+        }
+    }
+
+    private function hideBrowserOnDeviceTypeGaming()
+    {
+        if (isset($this->data->device->model) && $this->data->device->model == 'Playstation 2' && $this->data->browser->name == 'Internet Explorer') {
+            $this->data->browser->reset();
         }
     }
 
@@ -162,8 +177,7 @@ trait Corrections
     private function hideOsOnDeviceTypeTelevision()
     {
         if (isset($this->data->os->name) && !in_array($this->data->os->name, [ 'Aliyun OS', 'Tizen', 'Android', 'Android TV', 'FireOS', 'Google TV', 'Firefox OS' ])) {
-            unset($this->data->os->name);
-            unset($this->data->os->version);
+            $this->data->os->reset();
         }
     }
 }

@@ -80,6 +80,12 @@ trait Derive
                 case '34.0':
                     $this->data->os->version = new Version([ 'value' => '2.1' ]);
                     break;
+                case '37.0':
+                    $this->data->os->version = new Version([ 'value' => '2.2' ]);
+                    break;
+                case '44.0':
+                    $this->data->os->version = new Version([ 'value' => '2.5' ]);
+                    break;
             }
         }
     }
@@ -308,6 +314,16 @@ trait Derive
 
         if ($this->data->os->name == 'Aliyun OS' && $this->data->browser->stock) {
             $this->data->browser->hidden = true;
+        }
+
+        /* Derive OS/2 nickname */
+ 
+        if ($this->data->os->name == 'OS/2') {
+            if (!empty($this->data->os->version)) {
+                if ($this->data->os->version->is('>', '2')) {
+                    $this->data->os->version->nickname = 'Warp';
+                }
+            }
         }
 
         /* Derive iOS and OS X aliases */
