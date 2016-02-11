@@ -17,7 +17,7 @@ DeviceModels::$FIREFOXOS_MODELS = [
     'ALCATELOneTouch6015X!'                     => [ 'Alcatel', 'One Touch Fire E' ],
     'HUAWEI Ascend Y300-F1'                     => [ 'Huawei', 'Ascend Y300 F1' ],
     'HUAWEIY300-F1'                             => [ 'Huawei', 'Ascend Y300 F1' ],
-    'LG-D300'                                   => [ 'LG', 'Fireweb' ],
+    'LG-D3(00|01)!'                             => [ 'LG', 'Fireweb' ],
     'LGL25'                                     => [ 'LG', 'Fx0' ],
     'madai'                                     => [ 'LG', 'Fx0' ],
     'Orange KLIF'                               => [ 'Orange', 'Kilf' ],
@@ -26,5 +26,6 @@ DeviceModels::$FIREFOXOS_MODELS = [
     'ZTEOPEN'                                   => [ 'ZTE', 'Open' ],
     'OpenC'                                     => [ 'ZTE', 'Open C' ],
     'Open C'                                    => [ 'ZTE', 'Open C' ],
+    'OPENC2'                                    => [ 'ZTE', 'Open C2' ],
     'OPEN2'                                     => [ 'ZTE', 'Open II' ],
 ];

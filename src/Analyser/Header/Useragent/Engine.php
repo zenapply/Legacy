@@ -11,6 +11,8 @@ trait Engine
         $this->detectWebkit($ua);
         $this->detectKHTML($ua);
         $this->detectGecko($ua);
+        $this->detectServo($ua);
+        $this->detectGoanna($ua);
         $this->detectPresto($ua);
         $this->detectTrident($ua);
         $this->detectEdgeHTMLUseragent($ua);
@@ -31,7 +33,7 @@ trait Engine
 
             if (preg_match('/(?:Chrome|Chromium)\/([0-9]*)/u', $ua, $match)) {
                 if (intval($match[1]) >= 27) {
-                    $this->data->engine->name = 'Blink';
+                    $this->data->engine->reset([ 'name' => 'Blink' ]);
                 }
             }
         }
@@ -67,6 +69,35 @@ trait Engine
 
             if (preg_match('/; rv:([^\);]+)[\);]/u', $ua, $match)) {
                 $this->data->engine->version = new Version([ 'value' => $match[1], 'details' => 3 ]);
+            }
+        }
+    }
+
+
+    /* Servo */
+
+    private function detectServo($ua)
+    {
+        if (preg_match('/Servo\/([0-9.]*)/u', $ua, $match)) {
+            $this->data->engine->name = 'Servo';
+            $this->data->engine->version = new Version([ 'value' => $match[1] ]);
+        }
+    }
+
+
+    /* Goanna */
+
+    private function detectGoanna($ua)
+    {
+        if (preg_match('/Goanna/u', $ua)) {
+            $this->data->engine->name = 'Goanna';
+
+            if (preg_match('/Goanna\/([0-9]\.[0-9.]+)/u', $ua, $match)) {
+                $this->data->engine->version = new Version([ 'value' => $match[1] ]);
+            }
+
+            if (preg_match('/Goanna\/20[0-9]{6,6}/u', $ua) && preg_match('/; rv:([^\);]+)[\);]/u', $ua, $match)) {
+                $this->data->engine->version = new Version([ 'value' => $match[1] ]);
             }
         }
     }
@@ -116,15 +147,15 @@ trait Engine
 
             if (isset($this->data->os->version) && isset($this->data->os->name) && $this->data->os->name == 'Windows Phone' && isset($this->data->browser->name) && $this->data->browser->name == 'Mobile Internet Explorer') {
                 if ($this->data->engine->version->toNumber() == 7 && $this->data->os->version->toFloat() < 8.1) {
-                    $this->data->os->version = new Version([ 'value' => '8.1' ]);
+                    $this->data->os->version = new Version([ 'value' => '8.1', 'details' => 2 ]);
                 }
 
                 if ($this->data->engine->version->toNumber() == 6 && $this->data->os->version->toFloat() < 8) {
-                    $this->data->os->version = new Version([ 'value' => '8.0' ]);
+                    $this->data->os->version = new Version([ 'value' => '8.0', 'details' => 2 ]);
                 }
 
                 if ($this->data->engine->version->toNumber() == 5 && $this->data->os->version->toFloat() < 7.5) {
-                    $this->data->os->version = new Version([ 'value' => '7.5' ]);
+                    $this->data->os->version = new Version([ 'value' => '7.5', 'details' => 2 ]);
                 }
             }
         }

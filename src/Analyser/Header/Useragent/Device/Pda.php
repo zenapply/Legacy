@@ -10,14 +10,40 @@ trait Pda
 {
     private function detectPda($ua)
     {
+        $this->detectCasio($ua);
         $this->detectPalm($ua);
         $this->detectSonyMylo($ua);
+        $this->detectSonyAirboard($ua);
         $this->detectSharpZaurus($ua);
         $this->detectSharpShoin($ua);
+        $this->detectPanasonicPocketE($ua);
+        $this->detectFujitsuOasys($ua);
+        $this->detectNttPetitWeb($ua);
     }
 
 
 
+
+
+    /* Casio */
+
+    private function detectCasio($ua)
+    {
+        if (preg_match('/Product\=CASIO\/([^\);]+)[\);]/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Casio';
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->type = Constants\DeviceType::PDA;
+
+            if ($match[1] == 'CASSIOPEIA BE') {
+                $this->data->device->model = 'Cassiopeia';
+            }
+
+            if ($match[1] == 'PPP101') {
+                $this->data->device->model = 'Pocket PostPet';
+                $this->data->device->carrier = 'DoCoMo';
+            }
+        }
+    }
 
 
     /* Palm */
@@ -77,6 +103,19 @@ trait Pda
             }
         }
 
+        /* Some model markers */
+
+        if (preg_match('/PalmPilot Pro/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Palm';
+            $this->data->device->model = 'Pilot Professional';
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+
+        if (preg_match('/pdQbrowser/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Kyocera';
+            $this->data->device->model = 'QCP-6035';
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
     }
 
 
@@ -99,14 +138,31 @@ trait Pda
     }
 
 
+    /* Sony Airboard */
+
+    private function detectSonyAirboard($ua)
+    {
+        if (preg_match('/SONY\/airboard\/IDT-([A-Z0-9]+)/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Sony';
+            $this->data->device->model = 'Airboard ' . $match[1];
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->type = Constants\DeviceType::PDA;
+        }
+
+        if (preg_match('/LocationFreeTV; Airboard\/(LF-[A-Z0-9]+)/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Sony';
+            $this->data->device->model = 'Airboard ' . $match[1];
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->type = Constants\DeviceType::PDA;
+        }
+    }
+
+
     /* Sharp Zaurus */
 
     private function detectSharpZaurus($ua)
     {
         if (preg_match('/sharp pda browser\/([0-9\.]+)/ui', $ua, $match)) {
-            $this->data->browser->name = 'Sharp PDA Browser';
-            $this->data->browser->version = new Version([ 'value' => $match[1], 'details' => 2 ]);
-
             $this->data->device->manufacturer = 'Sharp';
             $this->data->device->model = 'Zaurus';
             $this->data->device->type = Constants\DeviceType::PDA;
@@ -133,18 +189,63 @@ trait Pda
     private function detectSharpShoin($ua)
     {
         if (preg_match('/sharp wd browser\/([0-9\.]+)/ui', $ua, $match)) {
-            $this->data->browser->name = 'Sharp WD Browser';
-            $this->data->browser->version = new Version([ 'value' => $match[1], 'details' => 2 ]);
-
             $this->data->device->manufacturer = 'Sharp';
-            $this->data->device->model = '書院';
+            $this->data->device->model = 'Mobile Shoin';
             $this->data->device->type = Constants\DeviceType::PDA;
 
             if (preg_match('/\(([A-Z0-9\-]+)\/[0-9\.]+\)/ui', $ua, $match)) {
-                $this->data->device->model = '書院 ' . $match[1];
+                $this->data->device->model = 'Mobile Shoin ' . $match[1];
                 $this->data->device->identified |= Constants\Id::MATCH_UA;
                 $this->data->device->generic = false;
             }
+        }
+    }
+
+
+    /* Panasonic POCKET・E */
+
+    private function detectPanasonicPocketE($ua)
+    {
+        if (preg_match('/Product\=Panasonic\/POCKET-E/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Panasonic';
+            $this->data->device->model = 'POCKET・E';
+            $this->data->device->type = Constants\DeviceType::PDA;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->generic = false;
+        }
+    }
+
+
+    /* Fujitsu OASYS */
+
+    private function detectFujitsuOasys($ua)
+    {
+        if (preg_match('/Fujitsu; OASYS/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'Fujitsu';
+            $this->data->device->model = 'OASYS';
+            $this->data->device->type = Constants\DeviceType::PDA;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->generic = false;
+
+            if (preg_match('/eNavigator/ui', $ua, $match)) {
+                $this->data->browser->name = 'eNavigator';
+                $this->data->browser->version = null;
+                $this->data->browser->type = Constants\BrowserType::BROWSER;
+            }
+        }
+    }
+
+
+    /* PetitWeb */
+
+    private function detectNttPetitWeb($ua)
+    {
+        if (preg_match('/Product\=NTT\/(PI-[0-9]+)/ui', $ua, $match)) {
+            $this->data->device->manufacturer = 'NTT';
+            $this->data->device->model = 'PetitWeb ' . $match[1];
+            $this->data->device->type = Constants\DeviceType::PDA;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->generic = false;
         }
     }
 }

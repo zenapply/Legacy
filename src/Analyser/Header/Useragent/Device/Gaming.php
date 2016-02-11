@@ -13,12 +13,16 @@ trait Gaming
             $this->detectNintendo($ua);
         }
 
-        if (preg_match('/PlayStation/iu', $ua)) {
+        if (preg_match('/PlayStation/iu', $ua) || preg_match('/PS[0-9]/u', $ua)) {
             $this->detectPlaystation($ua);
         }
 
         if (preg_match('/Xbox/iu', $ua)) {
             $this->detectXbox($ua);
+        }
+
+        if (preg_match('/Sega/iu', $ua) || preg_match('/Dreamcast/u', $ua)) {
+            $this->detectSega($ua);
         }
     }
 
@@ -126,7 +130,7 @@ trait Gaming
 
         /* PlayStation Vita */
 
-        if (preg_match('/PlayStation Vita/u', $ua)) {
+        if (preg_match('/PlayStation Vita/iu', $ua)) {
             $this->data->os->reset();
             $this->data->os->identifyVersion('/PlayStation Vita ([0-9.]*)/u', $ua);
 
@@ -139,12 +143,13 @@ trait Gaming
 
             if (preg_match('/VTE\//u', $ua)) {
                 $this->data->device->model = 'Playstation TV';
+                $this->data->device->subtype = Constants\DeviceSubType::CONSOLE;
             }
         }
 
         /* PlayStation 2 */
 
-        if (preg_match('/Playstation2/u', $ua)) {
+        if (preg_match('/Playstation2/u', $ua) || preg_match('/\(PS2/u', $ua)) {
             $this->data->os->reset();
 
             $this->data->device->setIdentification([
@@ -157,7 +162,7 @@ trait Gaming
 
         /* PlayStation 3 */
 
-        if (preg_match('/PlayStation 3/ui', $ua)) {
+        if (preg_match('/PlayStation 3/ui', $ua) || preg_match('/\(PS3/u', $ua)) {
             $this->data->os->reset();
             $this->data->os->identifyVersion('/PLAYSTATION 3;? ([0-9.]*)/u', $ua);
 
@@ -216,6 +221,36 @@ trait Gaming
             $this->data->device->setIdentification([
                 'manufacturer'  =>  'Microsoft',
                 'model'         =>  'Xbox One',
+                'type'          =>  Constants\DeviceType::GAMING,
+                'subtype'       =>  Constants\DeviceSubType::CONSOLE
+            ]);
+        }
+    }
+
+
+    /* Sega */
+
+    private function detectSega($ua)
+    {
+        /* Sega Saturn */
+
+        if (preg_match('/SEGASATURN/u', $ua, $match)) {
+            $this->data->os->reset();
+            $this->data->device->setIdentification([
+                'manufacturer'  =>  'Sega',
+                'model'         =>  'Saturn',
+                'type'          =>  Constants\DeviceType::GAMING,
+                'subtype'       =>  Constants\DeviceSubType::CONSOLE
+            ]);
+        }
+
+        /* Sega Dreamcast */
+
+        if (preg_match('/Dreamcast/u', $ua, $match)) {
+            $this->data->os->reset();
+            $this->data->device->setIdentification([
+                'manufacturer'  =>  'Sega',
+                'model'         =>  'Dreamcast',
                 'type'          =>  Constants\DeviceType::GAMING,
                 'subtype'       =>  Constants\DeviceSubType::CONSOLE
             ]);

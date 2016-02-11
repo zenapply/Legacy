@@ -25,6 +25,7 @@ trait Television
         $this->detectPhilipsTelevision($ua);
         $this->detectLgTelevision($ua);
         $this->detectToshibaTelevision($ua);
+        $this->detectSanyoTelevision($ua);
 
         /* Try to detect set top boxes from various manufacturers */
         $this->detectSettopboxes($ua);
@@ -41,6 +42,10 @@ trait Television
 
     private function detectGenericTelevision($ua)
     {
+        if (preg_match('/CE-HTML/u', $ua)) {
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+        }
+
         if (preg_match('/SmartTvA\//u', $ua)) {
             $this->data->device->type = Constants\DeviceType::TELEVISION;
         }
@@ -55,7 +60,7 @@ trait Television
 
     private function detectToshibaTelevision($ua)
     {
-        if (preg_match('/Toshiba_?TP\//u', $ua) || preg_match('/TSBNetTV\//u', $ua)) {
+        if (preg_match('/Toshiba_?TP\//u', $ua) || preg_match('/TSBNetTV ?\//u', $ua)) {
             $this->data->device->manufacturer = 'Toshiba';
             $this->data->device->series = 'Smart TV';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
@@ -100,7 +105,7 @@ trait Television
             $this->data->device->identified |= Constants\Id::MATCH_UA;
 
             if (preg_match('/LG Browser\/[0-9.]+\([^;]+; LGE; ([^;]+);/u', $ua, $match)) {
-                if (substr($match[1], 0, 6) != 'GLOBAL') {
+                if (substr($match[1], 0, 6) != 'GLOBAL' && substr($match[1], 0, 7) != 'NETCAST') {
                     $this->data->device->model = $match[1];
                 }
             }
@@ -134,6 +139,13 @@ trait Television
         /* WebOS */
 
         if (preg_match('/Web[O0]S/u', $ua) && preg_match('/Large Screen/u', $ua)) {
+            $this->data->device->manufacturer = 'LG';
+            $this->data->device->series = 'webOS TV';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+
+        if (preg_match('/Web[O0]S; Linux\/SmartTV/u', $ua)) {
             $this->data->device->manufacturer = 'LG';
             $this->data->device->series = 'webOS TV';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
@@ -178,6 +190,13 @@ trait Television
             if (preg_match('/PHILIPS-AVM/u', $ua)) {
                 $this->data->device->series = 'Blu-ray Player';
             }
+        }
+
+        if (preg_match('/PHILIPS_OLS_20[0-9]+/u', $ua)) {
+            $this->data->device->manufacturer = 'Philips';
+            $this->data->device->series = 'Net TV';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
         }
     }
 
@@ -312,6 +331,19 @@ trait Television
     }
 
 
+    /* Sanyo */
+
+    private function detectSanyoTelevision($ua)
+    {
+        if (preg_match('/Aplix_SANYO_browser/u', $ua)) {
+            $this->data->device->manufacturer = 'Sanyo';
+            $this->data->device->series = 'Internet TV';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+    }
+
+
     /* Sharp */
 
     private function detectSharpTelevision($ua)
@@ -340,7 +372,7 @@ trait Television
             $this->data->device->type = Constants\DeviceType::TELEVISION;
             $this->data->device->identified |= Constants\Id::MATCH_UA;
 
-            if (preg_match('/Panasonic\.tv\.([0-9]+)/u', $ua, $match)) {
+            if (preg_match('/Panasonic\.tv\.(?:mid\.)?([0-9]+)/u', $ua, $match)) {
                 $this->data->device->series = 'Viera ' . $match[1];
             }
 
@@ -366,6 +398,15 @@ trait Television
 
     private function detectSettopboxes($ua)
     {
+        /* Orange La clé TV */
+
+        if (preg_match('/lacleTV\//u', $ua)) {
+            $this->data->device->manufacturer = 'Orange';
+            $this->data->device->series = 'La clé TV';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+
         /* Loewe */
 
         if (preg_match('/LOEWE\/TV/u', $ua)) {
@@ -408,15 +449,13 @@ trait Television
 
         /* MStar */
 
-        if (preg_match('/Mstar;OWB/u', $ua)) {
+        if (preg_match('/Mstar;/u', $ua)) {
             $this->data->os->reset();
 
             $this->data->device->manufacturer = 'MStar';
             $this->data->device->model = 'PVR';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
             $this->data->device->identified |= Constants\Id::MATCH_UA;
-
-            $this->data->browser->name = 'Origyn Web Browser';
         }
 
         /* TechniSat */
@@ -438,6 +477,30 @@ trait Television
 
             $this->data->device->manufacturer = 'Technicolor';
             $this->data->device->model = $match[1];
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->generic = false;
+        }
+
+        /* Cisco MediaHighway */
+
+        if (preg_match('/Media-Highway Evolution/u', $ua, $match)) {
+            $this->data->os->reset();
+
+            $this->data->device->manufacturer = 'Cisco';
+            $this->data->device->model = 'MediaHighway';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+            $this->data->device->generic = false;
+        }
+
+        /* Sony LocationFreeTV */
+
+        if (preg_match('/LocationFreeTV\/([A-Z0-9\-]+)/u', $ua, $match)) {
+            $this->data->os->reset();
+
+            $this->data->device->manufacturer = 'Sony';
+            $this->data->device->model = 'LocationFreeTV ' . $match[1];
             $this->data->device->type = Constants\DeviceType::TELEVISION;
             $this->data->device->identified |= Constants\Id::MATCH_UA;
             $this->data->device->generic = false;
@@ -472,43 +535,38 @@ trait Television
 
         /* Roku  */
 
-        if (preg_match('/^Roku\/DVP-([0-9]+)/u', $ua, $match)) {
+        if (preg_match('/^Roku\/DVP-(?:[0-9A-Z]+-)?[0-9\.]+ \(([0-9]{2,2})/u', $ua, $match)) {
             $this->data->os->reset();
 
             $this->data->device->manufacturer = 'Roku';
             $this->data->device->type = Constants\DeviceType::TELEVISION;
 
             switch ($match[1]) {
-                case '2000':
-                    $this->data->device->model = 'HD';
+                case '02':
+                    $this->data->device->model = '2 XS';
                     $this->data->device->generic = false;
                     break;
-                case '2050':
-                    $this->data->device->model = 'XD';
+                case '04':
+                    $this->data->device->model = '3';
                     $this->data->device->generic = false;
                     break;
-                case '2100':
-                    $this->data->device->model = 'XDS';
-                    $this->data->device->generic = false;
-                    break;
-                case '2400':
+                case '07':
                     $this->data->device->model = 'LT';
                     $this->data->device->generic = false;
                     break;
-                case '3000':
-                    $this->data->device->model = '2 HD';
-                    $this->data->device->generic = false;
-                    break;
-                case '3050':
-                    $this->data->device->model = '2 XD';
-                    $this->data->device->generic = false;
-                    break;
-                case '3100':
-                    $this->data->device->model = '2 XS';
+                case '09':
+                    $this->data->device->model = 'Streaming Stick';
                     $this->data->device->generic = false;
                     break;
             }
 
+            $this->data->device->identified |= Constants\Id::MATCH_UA;
+        }
+
+        if (preg_match('/\(Roku/u', $ua)) {
+            $this->data->device->manufacturer = 'Roku';
+            $this->data->device->model = '';
+            $this->data->device->type = Constants\DeviceType::TELEVISION;
             $this->data->device->identified |= Constants\Id::MATCH_UA;
         }
 
@@ -582,24 +640,34 @@ trait Television
                     $this->data->device->manufacturer = 'LG';
 
                     switch ($modelName) {
+                        case 'WEBOS1':
                         case 'webOS.TV':
                             $this->data->device->series = 'webOS TV';
                             break;
-                        case 'WEBOS1':
-                            $this->data->device->series = 'webOS TV';
-                            break;
-                        case 'GLOBAL-PLAT3':
-                            $this->data->device->series = 'NetCast TV 2012';
-                            break;
+                        case 'NETCAST4':
+                        case 'NetCast4.0':
                         case 'GLOBAL-PLAT4':
                             $this->data->device->series = 'NetCast TV 2013';
-                            break;
-                        case 'GLOBAL-PLAT5':
-                            $this->data->device->series = 'NetCast TV 2014';
                             break;
                         default:
                             $this->data->device->model = $modelName;
                             break;
+                    }
+
+                    break;
+
+                case 'Google Fiber':
+                    $this->data->device->manufacturer = $vendorName;
+                    $this->data->device->model = 'TV Box';
+                    break;
+
+                case 'Sagemcom':
+                    $this->data->device->manufacturer = $vendorName;
+                    $this->data->device->series = 'Settopbox';
+                    
+                    if (preg_match('/^([A-Z]+[0-9]+)/ui', $modelName, $match)) {
+                        $this->data->device->model = $match[1];
+                        unset($this->data->device->series);
                     }
 
                     break;
@@ -611,7 +679,11 @@ trait Television
 
                 default:
                     $this->data->device->manufacturer = $vendorName;
-                    $this->data->device->model = $modelName;
+
+                    if (!in_array($modelName, [ 'dvb' ])) {
+                        $this->data->device->model = $modelName;
+                    }
+
                     break;
             }
         }
@@ -622,20 +694,20 @@ trait Television
 
     private function detectGenericInettvBrowser($ua)
     {
-        if (preg_match('/(?:DTVNetBrowser|InettvBrowser|Hybridcast)\/[0-9\.]+[A-Z]? \(/u', $ua, $match)) {
+        if (preg_match('/(?:DTVNetBrowser|InettvBrowser|Hybridcast)\/[0-9\.]+[A-Z]? ?\(/u', $ua, $match)) {
             $this->data->device->type = Constants\DeviceType::TELEVISION;
 
             $vendorName = null;
             $modelName = null;
             $found = false;
 
-            if (preg_match('/(?:DTVNetBrowser|InettvBrowser)\/[0-9\.]+[A-Z]? \(([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
+            if (preg_match('/(?:DTVNetBrowser|InettvBrowser)\/[0-9\.]+[A-Z]? ?\(([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
                 $vendorName = trim($match[1]);
                 $modelName = trim($match[2]);
                 $found = true;
             }
 
-            if (preg_match('/Hybridcast\/[0-9\.]+ \([^;]*;([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
+            if (preg_match('/Hybridcast\/[0-9\.]+ ?\([^;]*;([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
                 $vendorName = trim($match[1]);
                 $modelName = trim($match[2]);
                 $found = true;
@@ -649,8 +721,16 @@ trait Television
                 }
 
                 switch ($vendorName . '#') {
+                    case '000024#':
+                        $this->data->device->manufacturer = 'Connect AS';
+                        break;
+
                     case '000087#':
                         $this->data->device->manufacturer = 'Hitachi';
+                        break;
+
+                    case '00A0B0#':
+                        $this->data->device->manufacturer = 'I-O Data Device';
                         break;
 
                     case '00E091#':
@@ -663,8 +743,15 @@ trait Television
                             case 'LGE3D2012M':
                                 $this->data->device->series = 'NetCast TV 2012';
                                 break;
+                            case 'LGwebOSTV':
+                                $this->data->device->series = 'webOS TV';
+                                break;
                         }
 
+                        break;
+
+                    case '0050C9#':
+                        $this->data->device->manufacturer = 'Maspro Denkoh';
                         break;
 
                     case '38E08E#':
@@ -673,6 +760,10 @@ trait Television
 
                     case '008045#':
                         $this->data->device->manufacturer = 'Panasonic';
+                        break;
+
+                    case '00E036#':
+                        $this->data->device->manufacturer = 'Pioneer';
                         break;
 
                     case '00E064#':
@@ -700,15 +791,21 @@ trait Television
 
     private function detectGenericHbbTV($ua)
     {
-        if (preg_match('/(?:HbbTV|SmartTV)\/[0-9\.]+ \(/iu', $ua, $match)) {
+        if (preg_match('/((HbbTV|OHTV|SmartTV)\/[0-9\.]+ \(|\)\+CE-HTML)/iu', $ua)) {
             $this->data->device->type = Constants\DeviceType::TELEVISION;
 
             $vendorName = null;
             $modelName = null;
             $found = false;
 
-            if (preg_match('/HbbTV\/[0-9\.]+ \(([^;]*);\s*([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
-                if (trim($match[1]) == "" || trim($match[1]) == "PVR" || strpos($match[1], '+') !== false) {
+            if (preg_match('/UID\([a-f0-9:]+\/([^\/]+)\/([^\/]+)\/[0-9a-z\.]+\)\+CE-HTML/iu', $ua, $match)) {
+                $vendorName = Data\Manufacturers::identify(Constants\DeviceType::TELEVISION, $match[2]);
+                $modelName = trim($match[1]);
+                $found = true;
+            }
+
+            if (preg_match('/(?:HbbTV|OHTV)\/[0-9\.]+ \(([^;]*);\s*([^;]*)\s*;\s*([^;]*)\s*;/u', $ua, $match)) {
+                if (trim($match[1]) == "" || in_array(strtok($match[1], ' '), [ 'PVR', 'DL' ]) || strpos($match[1], '+') !== false) {
                     $vendorName = Data\Manufacturers::identify(Constants\DeviceType::TELEVISION, $match[2]);
                     $modelName = trim($match[3]);
                 } else {
@@ -725,6 +822,10 @@ trait Television
                 $found = true;
             }
 
+            if (in_array($vendorName, [ 'Access', 'ANT', 'EMSYS', 'Em-Sys', 'Opera', 'Opera Software', 'Seraphic', 'Vendor' ])) {
+                $found = false;
+            }
+
             if ($found) {
                 $this->data->device->identified |= Constants\Id::PATTERN;
 
@@ -733,35 +834,21 @@ trait Television
                         $this->data->device->manufacturer = 'LG';
 
                         switch ($modelName) {
+                            case 'NetCast 3.0':
                             case 'GLOBAL_PLAT3':
                                 $this->data->device->series = 'NetCast TV 2012';
                                 break;
-                            case 'GLOBAL_PLAT4':
-                                $this->data->device->series = 'NetCast TV 2013';
-                                break;
-                            case 'GLOBAL_PLAT5':
-                                $this->data->device->series = 'NetCast TV 2014';
-                                break;
-                            case 'NetCast 2.0':
-                                $this->data->device->series = 'NetCast TV 2011';
-                                break;
-                            case 'NetCast 3.0':
-                                $this->data->device->series = 'NetCast TV 2012';
-                                break;
                             case 'NetCast 4.0':
+                            case 'GLOBAL-PLAT4':
                                 $this->data->device->series = 'NetCast TV 2013';
                                 break;
-                            case 'NetCast 4.5':
-                                $this->data->device->series = 'NetCast TV 2014';
-                                break;
-                            default:
-                                $this->data->device->model = $modelName;
+                            case 'WEBOS3':
+                                $this->data->device->series = 'webOS TV';
                                 break;
                         }
 
                         break;
 
-                    case 'SAMSUNG':
                     case 'Samsung':
                         $this->data->device->manufacturer = 'Samsung';
 
@@ -775,12 +862,12 @@ trait Television
                             case 'SmartTV2014':
                                 $this->data->device->series = 'Smart TV 2014';
                                 break;
+                            case 'SmartTV2015':
+                                $this->data->device->series = 'Smart TV 2015';
+                                break;
                             case 'OTV-SMT-E5015':
                                 $this->data->device->model = 'Olleh SkyLife Smart Settopbox';
                                 unset($this->data->device->series);
-                                break;
-                            default:
-                                $this->data->device->model = $modelName;
                                 break;
                         }
 
@@ -803,6 +890,7 @@ trait Television
                                 $this->data->device->series = 'Viera 2014';
                                 break;
                             case 'VIERA 2015':
+                            case 'Viera2015.mid':
                                 $this->data->device->series = 'Viera 2015';
                                 break;
                             default:
@@ -819,19 +907,16 @@ trait Television
                             case 'videoweb':
                                 $this->data->device->model = 'Videoweb';
                                 break;
-                            default:
-                                $this->data->device->model = $modelName;
-                                break;
                         }
 
                         break;
 
                     default:
-                        if ($vendorName != '' && $vendorName != 'vendorName') {
+                        if ($vendorName != '' && !in_array($vendorName, [ 'OEM', 'vendorName' ])) {
                             $this->data->device->manufacturer = $vendorName;
                         }
 
-                        if ($modelName != '' && $modelName != 'modelName') {
+                        if ($modelName != '' && !in_array($modelName, [ 'dvb', 'modelName', 'undefined-model-name', 'N/A' ])) {
                             $this->data->device->model = $modelName;
                         }
 
@@ -842,6 +927,20 @@ trait Television
                     case 'hdr1000s':
                         $this->data->device->manufacturer = 'Humax';
                         $this->data->device->model = 'HDR-1000S';
+                        $this->data->device->identified |= Constants\Id::MATCH_UA;
+                        $this->data->device->generic = false;
+                        break;
+
+                    case 'hdr4000t':
+                        $this->data->device->manufacturer = 'Humax';
+                        $this->data->device->model = 'HDR-4000T';
+                        $this->data->device->identified |= Constants\Id::MATCH_UA;
+                        $this->data->device->generic = false;
+                        break;
+
+                    case 'hgs1000s':
+                        $this->data->device->manufacturer = 'Humax';
+                        $this->data->device->model = 'HGS-1000S';
                         $this->data->device->identified |= Constants\Id::MATCH_UA;
                         $this->data->device->generic = false;
                         break;

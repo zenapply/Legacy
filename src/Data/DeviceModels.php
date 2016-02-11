@@ -114,7 +114,7 @@ class DeviceModels
             'generic'       => false
         ]);
 
-        if (is_numeric($model) && intval($model) > 999 && intval($model) < 10000) {
+        if (preg_match("/^[1-9][0-9][0-9][0-9][ei]?$/u", $model)) {
             $device = new Device([
                 'type'          => Constants\DeviceType::MOBILE,
                 'identified'    => Constants\Id::PATTERN,
@@ -237,6 +237,8 @@ class DeviceModels
 
         $s = preg_replace('/_TD$/u', '', $s);
         $s = preg_replace('/_LTE$/u', '', $s);
+        $s = preg_replace('/_GPRS$/u', '', $s);
+        $s = preg_replace('/_BLEU$/u', '', $s);
         $s = preg_replace('/_CMCC$/u', '', $s);
         $s = preg_replace('/_CUCC$/u', '', $s);
         $s = preg_replace('/-BREW.+$/u', '', $s);
@@ -285,8 +287,11 @@ class DeviceModels
         $s = preg_replace('/^(MOT-)/u', '', $s);
         $s = preg_replace('/^Moto([^\s])/u', '$1', $s);
 
-        $s = preg_replace('/-?(orange(-ls)?|vodafone|bouygues|parrot|Kust|ls)$/iu', '', $s);
-        $s = preg_replace('/ (Mozilla|Opera|Obigo|Build|Java|PPC)$/iu', '', $s);
+        $s = preg_replace('/^VZW:/iu', '', $s);
+        $s = preg_replace('/^Vodafone\/1.0\//iu', '', $s);
+        $s = preg_replace('/-?(orange(-ls)?|vodafone|bouygues|parrot|Kust)$/iu', '', $s);
+        $s = preg_replace('/ (Mozilla|Opera|Obigo|Java|PPC)$/iu', '', $s);
+        $s = preg_replace('/ ?Build$/iu', '', $s);
         $s = preg_replace('/http:\/\/.+$/iu', '', $s);
         $s = preg_replace('/^\s+|\s+$/u', '', $s);
         $s = preg_replace('/\s+/u', ' ', $s);

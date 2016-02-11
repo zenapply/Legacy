@@ -13,12 +13,12 @@ trait Corrections
             $this->hideDeviceModelIfMatchesLanguage();
         }
 
-        if (isset($this->data->browser->name) && isset($this->data->os->name)) {
-            $this->hideBrowserBasedOnOperatingSystem();
+        if (isset($this->data->browser->name) && isset($this->data->browser->using)) {
+            $this->hideBrowserBasedOnUsing();
         }
 
         if (isset($this->data->browser->name) && isset($this->data->os->name)) {
-            $this->correctVersionOfMobileInternetExplorer();
+            $this->hideBrowserBasedOnOperatingSystem();
         }
 
         if (isset($this->data->browser->name) && $this->data->device->type == Constants\DeviceType::TELEVISION) {
@@ -81,15 +81,12 @@ trait Corrections
         }
     }
 
-    private function correctVersionOfMobileInternetExplorer()
+    private function hideBrowserBasedOnUsing()
     {
-        if ($this->data->os->name == 'Windows Phone' && $this->data->browser->name == 'Mobile Internet Explorer') {
-            if ($this->data->os->version->toFloat() == 8.0 && $this->data->browser->version->toNumber() < 10) {
-                $this->data->browser->version = new Version([ 'value' => '10' ]);
-            }
-
-            if ($this->data->os->version->toFloat() == 8.1 && $this->data->browser->version->toNumber() < 11) {
-                $this->data->browser->version = new Version([ 'value' => '11' ]);
+        if ($this->data->browser->name == 'Chrome') {
+            if ($this->data->browser->isUsing('Electron') || $this->data->browser->isUsing('Qt')) {
+                unset($this->data->browser->name);
+                unset($this->data->browser->version);
             }
         }
     }
