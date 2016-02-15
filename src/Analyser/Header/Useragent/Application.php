@@ -170,6 +170,7 @@ trait Application
                 [ 'name' => 'iTunes',               'regexp' => '/iTunes-AppleTV\//u' ],
                 [ 'name' => 'QuickTime',            'regexp' => '/\(qtver=([0-9.]*);/u' ],
                 [ 'name' => 'Bluefish',             'regexp' => '/bluefish ([0-9.]*)/u' ],
+                [ 'name' => 'Nightingale',          'regexp' => '/Nightingale\/([0-9.]*)/u' ],
                 [ 'name' => 'Songbird',             'regexp' => '/Songbird\/([0-9.]*)/u' ],
                 [ 'name' => 'Stagefright',          'regexp' => '/stagefright\/([0-9.]*)/u' ],
                 [ 'name' => 'SubStream',            'regexp' => '/SubStream\/([0-9.]*)/u', 'type' => Constants\DeviceType::MOBILE ],
@@ -222,6 +223,7 @@ trait Application
             ],
 
             Constants\BrowserType::APP_CHAT => [
+                [ 'name' => 'Facebook Messenger',   'regexp' => '/FBAN\/MessengerForiOS/u' ],
                 [ 'name' => 'Kik',                  'regexp' => '/Kik\/([0-9.]*)/u' ],
                 [ 'name' => 'WeChat',               'regexp' => '/MicroMessenger\/([0-9.]*)/u' ],
                 [ 'name' => 'Yahoo Messenger',      'regexp' => '/YahooMobile\/1.0 \(im; ([0-9.]+)\)/u', 'details' => 3 ],
@@ -233,6 +235,7 @@ trait Application
                 [ 'name' => 'Facebook',             'regexp' => '/FBAN\/FB4A/u' ],
                 [ 'name' => 'Facebook',             'regexp' => '/FB_IAB\/FB4A/u' ],
                 [ 'name' => 'Google+',              'regexp' => '/com.google.GooglePlus/u'  ],
+                [ 'name' => 'Instagram',            'regexp' => '/Instagram ([0-9.]+)/u' ],
                 [ 'name' => 'Sina Weibo',           'regexp' => '/weibo__([0-9.]*)/u' ],
                 [ 'name' => 'Twitter',              'regexp' => '/TwitterAndroid/u' ],
                 [ 'name' => 'WordPress',            'regexp' => '/wp-android\/([0-9.]*)/u' ],
@@ -252,6 +255,7 @@ trait Application
                 [ 'name' => 'Atom',                 'regexp' => '/Atom\/([0-9.]*)/u' ],
                 [ 'name' => 'Adobe GoLive',         'regexp' => '/GoLive ([0-9.]*)/u' ],
                 [ 'name' => 'Brackets',             'regexp' => '/Brackets\/([0-9.]*)/u' ],
+                [ 'name' => 'iWeb',                 'regexp' => '/iWeb\/([0-9])/u' ],
                 [ 'name' => 'Microsoft FrontPage',  'regexp' => '/MS FrontPage ([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::DESKTOP ],
                 [ 'name' => 'W3C Amaya',            'regexp' => '/amaya\/([0-9.]*)/u' ],
             ],
@@ -268,6 +272,7 @@ trait Application
             ],
 
             Constants\BrowserType::APP => [
+                [ 'name' => 'Cooliris',             'regexp' => '/Cooliris\/([0-9.]*)/u' ],
                 [ 'name' => 'Google Earth',         'regexp' => '/Google Earth\/([0-9.]*)/u', 'details' => 2 ],
                 [ 'name' => 'Google Desktop',       'regexp' => '/Google Desktop\/([0-9.]*)/u', 'details' => 2 ],
                 [ 'name' => 'Leechcraft',           'regexp' => '/Leechcraft(?:\/([0-9.]*))?/u', 'details' => 2 ],

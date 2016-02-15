@@ -27,6 +27,10 @@ trait Derive
             $this->deriveFirefoxOS();
         }
 
+        if (isset($this->data->browser->name)) {
+            $this->deriveTrident();
+        }
+
         return $this;
     }
 
@@ -48,6 +52,26 @@ trait Derive
         }
 
         return $this;
+    }
+
+
+    private function deriveTrident()
+    {
+        if ($this->data->isType('desktop') && $this->data->isBrowser('Internet Explorer') && !$this->data->engine->getName()) {
+            if ($this->data->isBrowser('Internet Explorer', '>=', 4)) {
+                $this->data->engine->set([ 'name' => 'Trident' ]);
+            }
+        }
+
+        if ($this->data->isMobile() && $this->data->isBrowser('Mobile Internet Explorer') && !$this->data->engine->getName()) {
+            if ($this->data->isBrowser('Mobile Internet Explorer', '=', 6)) {
+                $this->data->engine->set([ 'name' => 'Trident' ]);
+            }
+
+            if ($this->data->isBrowser('Mobile Internet Explorer', '=', 7)) {
+                $this->data->engine->set([ 'name' => 'Trident', 'version' => new Version([ 'value' => '3.1' ]) ]);
+            }
+        }
     }
 
 

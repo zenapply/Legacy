@@ -383,6 +383,10 @@ trait Browser
 
         /* Old versions of Pocket Internet Explorer */
 
+        if ($this->data->isBrowser('Mobile Internet Explorer', '<', 6)) {
+            $this->data->browser->name = 'Pocket Internet Explorer';
+        }
+
         if (preg_match('/Microsoft Pocket Internet Explorer\//u', $ua)) {
             $this->data->browser->name = 'Pocket Internet Explorer';
             $this->data->browser->version = new Version([ 'value' => '1.0' ]);
@@ -728,6 +732,16 @@ trait Browser
             $this->data->browser->type = Constants\BrowserType::BROWSER;
 
             if (preg_match('/Minimo\/([0-9ab.]*)/u', $ua, $match)) {
+                $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+            }
+        }
+
+        if (preg_match('/Phoenix/u', $ua)) {
+            $this->data->browser->stock = false;
+            $this->data->browser->name = 'Phoenix';
+            $this->data->browser->type = Constants\BrowserType::BROWSER;
+
+            if (preg_match('/Phoenix\/([0-9ab.]*)/u', $ua, $match)) {
                 $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             }
         }
@@ -1306,14 +1320,14 @@ trait Browser
             return $result;
         };
 
-        if (preg_match('/(?:Obigo|Teleca)/ui', $ua)) {
+        if (preg_match('/(?:Obigo|Teleca|AU-MIC|MIC\/WAP)/ui', $ua)) {
             $this->data->browser->name = 'Obigo';
             $this->data->browser->version = null;
             $this->data->browser->type = Constants\BrowserType::BROWSER;
 
             if (preg_match('/Obigo\/0?([0-9.]+)/iu', $ua, $match)) {
                 $this->data->browser->version = new Version($processObigoVersion($match[1]));
-            } elseif (preg_match('/TelecaBrowser\/(WAP|[A-Z])?0?([0-9.]+[A-Z]?)/iu', $ua, $match)) {
+            } elseif (preg_match('/(?:MIC|TelecaBrowser)\/(WAP|[A-Z])?0?([0-9.]+[A-Z]?)/iu', $ua, $match)) {
                 $this->data->browser->version = new Version($processObigoVersion($match[2]));
                 if (!empty($match[1])) {
                     $this->data->browser->name = 'Obigo ' . strtoupper($match[1]);
@@ -2180,7 +2194,7 @@ trait Browser
 
         /* Novarra Vision */
 
-        if (preg_match('/Novarra-Vision\/?([0-9.]*)/u', $ua, $match)) {
+        if (preg_match('/(?:Vision-Browser|Novarra-Vision)\/?([0-9.]*)/u', $ua, $match)) {
             $this->data->browser->name = 'Novarra Vision';
             $this->data->browser->version = new Version([ 'value' => $match[1] ]);
             $this->data->browser->family = null;
@@ -2312,6 +2326,7 @@ trait Browser
                 [ 'name' => 'LieBao',               'regexp' => '/LBBROWSER/u' ],                                                                       // see: http://www.liebao.cn
                 [ 'name' => 'Lobo',                 'regexp' => '/Lobo\/([0-9.]*)/u', 'type' => Constants\DeviceType::DESKTOP ],                        // see: http://sourceforge.net/projects/xamj/files/Lobo%20Browser/
                 [ 'name' => 'Lunascape',            'regexp' => '/Lunascape[\/| ]([0-9.]*)/u', 'details' => 3 ],                                        // see: http://www.lunascape.tv
+                [ 'name' => 'Naenara',              'regexp' => '/NaenaraBrowser\/([0-9.]*)/u', 'details' => 2 ],                                       // Firefox based browser used with Red Star OS
                 [ 'name' => 'Maxthon',              'regexp' => '/MxBrowser\/([0-9.]*)/u' ],
                 [ 'name' => 'Maxthon',              'regexp' => '/MxBrowser-iPhone\/([0-9.]*)/u' ],
                 [ 'name' => 'MixShark',             'regexp' => '/MixShark\/([0-9.]*)/u' ],                                                             // see: http://terbaddo.free.fr/mixshark.php
@@ -2334,7 +2349,7 @@ trait Browser
                 [ 'name' => 'Sogou Explorer',       'regexp' => '/SE 2.X MetaSr/u', 'type' => Constants\DeviceType::DESKTOP ],
                 [ 'name' => 'Stainless',            'regexp' => '/Stainless\/([0-9.]*)/u' ],                                                            // see: http://www.stainlessapp.com
                 [ 'name' => 'SunChrome',            'regexp' => '/SunChrome\/([0-9.]*)/u' ],
-                [ 'name' => 'Superbird',            'regexp' => '/Superbird\/([0-9.]*)/u', 'details' => 2 ],
+                [ 'name' => 'Superbird',            'regexp' => '/Super[Bb]ird\/([0-9.]*)/u', 'details' => 2 ],
                 [ 'name' => 'Swing Browser',        'regexp' => '/Swing(?:\(And\))?\/([0-9.]*)/u', 'details' => 3 ],                                    // see: http://swing-browser.com
                 [ 'name' => 'Tencent Traveler',     'regexp' => '/TencentTraveler ([0-9.]*)/u', 'details' => 2 ],
                 [ 'name' => 'TenFourFox',           'regexp' => '/TenFourFox\//u' ],
@@ -2350,6 +2365,8 @@ trait Browser
                 [ 'name' => '2345 Browser',         'regexp' => '/Mb2345Browser\/([0-9.]*)/u' ],
                 [ 'name' => '3G Explorer',          'regexp' => '/3G Explorer\/([0-9.]*)/u', 'details' => 3 ],
                 [ 'name' => '4G Explorer',          'regexp' => '/4G Explorer\/([0-9.]*)/u', 'details' => 3 ],
+                [ 'name' => 'Atomic',               'regexp' => '/AtomicLite\/([0-9.]*)/u' ],                                                           // see: http://atomicwebbrowser.com
+                [ 'name' => 'AU',                   'regexp' => '/(?:^| )AU(?:.Browser)?\/([0-9.]+)/u' ],
                 [ 'name' => 'Awakening',            'regexp' => '/Awakening Browser\/([0-9.]*)/u', 'details' => 2 ],
                 [ 'name' => 'Baidu Browser',        'regexp' => '/M?BaiduBrowser\/([0-9.]*)/i' ],
                 [ 'name' => 'Baidu Browser',        'regexp' => '/BdMobile\/([0-9.]*)/i' ],
@@ -2365,6 +2382,7 @@ trait Browser
                 [ 'name' => 'EMOBILE Browser',      'regexp' => '/WWW Browser\/ver([0-9.]*)/u' ],
                 [ 'name' => 'Go.Web',               'regexp' => '/Go\.Web\/([0-9.]*)/u' ],                                                              // used on early Blackberry, by GoAmerica
                 [ 'name' => 'Helium',               'regexp' => '/HeliumMobileBrowser\/([0-9.]*)/u' ],
+                [ 'name' => 'iCab',                 'regexp' => '/iCabMobile\/([0-9.]*)/u' ],
                 [ 'name' => 'iLunascape',           'regexp' => '/iLunascape\/([0-9.]*)/u', 'details' => 3 ],                                           // see: http://www.lunascape.tv
                 [ 'name' => 'InternetSurfboard',    'regexp' => '/InternetSurfboard\/([0-9.]*)/u' ],
                 [ 'name' => 'iSurf',                'regexp' => '/iSurf version \/v([0-9.]*)/u', 'details' => 2 ],
@@ -2375,13 +2393,17 @@ trait Browser
                 [ 'name' => 'MaCross Mobile',       'regexp' => '/MaCross\/([0-9.]*)/u' ],
                 [ 'name' => 'Mammoth',              'regexp' => '/Mammoth\/([0-9.]*)/u' ],                                                              // see: https://itunes.apple.com/cn/app/meng-ma-liu-lan-qi/id403760998?mt=8
                 [ 'name' => 'Motorola Internet Browser', 'regexp' => '/MIB\/([0-9.]*)/u' ],
+                [ 'name' => 'Motorola Internet Browser', 'regexp' => '/MIB([0-9.]+)\//u' ],
+                [ 'name' => 'Motorola Internet Browser', 'regexp' => '/Browser\/CMCS([0-9.]*)/u' ],
                 [ 'name' => 'Motorola WebKit',      'regexp' => '/MotorolaWebKit(?:\/([0-9.]*))?/u', 'details' => 3 ],
                 [ 'name' => 'MIUI Browser',         'regexp' => '/MiuiBrowser\/([0-9.]*)/u' ],
                 [ 'name' => 'NetFront Life Browser', 'regexp' => '/NetFrontLifeBrowser\/([0-9.]*)/u' ],
                 [ 'name' => 'OneBrowser',           'regexp' => '/OneBrowser\/([0-9.]*)/u' ],
-                [ 'name' => 'Openwave',             'regexp' => '/Openwave\/([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
+                [ 'name' => 'Openwave',             'regexp' => '/Browser\/OpenWave([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
+                [ 'name' => 'Openwave',             'regexp' => '/Open[Ww]ave\/([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
                 [ 'name' => 'Openwave',             'regexp' => '/Openwave Mobile Browser ([0-9.]*)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
                 [ 'name' => 'Openwave',             'regexp' => '/UP\. ?Browser(?:\/([a-z0-9.]*))?/iu', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
+                [ 'name' => 'Openwave',             'regexp' => '/KM\.Browser\/([0-9.]+)/iu', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
                 [ 'name' => 'Openwave',             'regexp' => '/UP\/([0-9.]+)/u', 'details' => 2, 'type' => Constants\DeviceType::MOBILE ],
                 [ 'name' => 'Polaris',              'regexp' => '/Polaris[\/ ]v?([0-9.]*)/iu', 'details' => 2 ],
                 [ 'name' => 'Polaris',              'regexp' => '/POLARIS([0-9.]+)/u', 'details' => 2 ],
