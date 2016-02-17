@@ -23,6 +23,52 @@ trait Application
 
     private function detectSpecificApplications($ua)
     {
+        /* "Android Application" */
+
+        if (preg_match('/^(.+) Android Application \([0-9]+, .+ v([0-9\.]+)\) - [a-z]+ (.*) [a-z]+ - [0-9A-F]{8,8}-[0-9A-F]{4,4}-[0-9A-F]{4,4}-[0-9A-F]{4,4}-[0-9A-F]{12,12}$/iu', $ua, $match)) {
+            $this->data->browser->name = $match[1];
+            $this->data->browser->version = null;
+            $this->data->browser->type = Constants\BrowserType::APP;
+
+            $this->data->os->reset([
+                'name'      => 'Android',
+                'version'   => new Version([ 'value' => $match[2] ])
+            ]);
+
+            $this->data->device->model = $match[3];
+            $this->data->device->identified |= Constants\Id::PATTERN;
+            $this->data->device->type = Constants\DeviceType::MOBILE;
+
+            $device = Data\DeviceModels::identify('android', $match[3]);
+            if ($device->identified) {
+                $device->identified |= $this->data->device->identified;
+                $this->data->device = $device;
+            }
+        }
+
+        /* Instagram */
+
+        if (preg_match('/^Instagram ([0-9\.]+) Android \([0-9]+\/([0-9\.]+); [0-9]+dpi; [0-9]+x[0-9]+; [^;]+; ([^;]*);/iu', $ua, $match)) {
+            $this->data->browser->name = 'Instagram';
+            $this->data->browser->version = new Version([ 'value' => $match[1] ]);
+            $this->data->browser->type = Constants\BrowserType::APP_SOCIAL;
+
+            $this->data->os->reset([
+                'name'      => 'Android',
+                'version'   => new Version([ 'value' => $match[2] ])
+            ]);
+
+            $this->data->device->model = $match[3];
+            $this->data->device->identified |= Constants\Id::PATTERN;
+            $this->data->device->type = Constants\DeviceType::MOBILE;
+
+            $device = Data\DeviceModels::identify('android', $match[3]);
+            if ($device->identified) {
+                $device->identified |= $this->data->device->identified;
+                $this->data->device = $device;
+            }
+        }
+
         /* Dr. Web Anti-Virus */
 
         if (preg_match('/Dr\.Web anti\-virus Light Version: ([0-9\.]+) Device model: (.*) Firmware version: ([0-9\.]+)/u', $ua, $match)) {
@@ -141,10 +187,21 @@ trait Application
 
         /* Yahoo */
 
-        if (preg_match('/YahooMobile(?:Messenger|Mail)\/1.0 \(Android (Messenger|Mail); ([0-9\.]+)\) \([^;]+; ?[^;]+; ?([^;]+); ?([0-9\.]+)\/[^\;\)\/]+\)/u', $ua, $match)) {
+        if (preg_match('/YahooMobile(?:Messenger|Mail|Weather)\/1.0 \(Android (Messenger|Mail|Weather); ([0-9\.]+)\) \([^;]+; ?[^;]+; ?([^;]+); ?([0-9\.]+)\/[^\;\)\/]+\)/u', $ua, $match)) {
             $this->data->browser->name = 'Yahoo ' . $match[1];
             $this->data->browser->version = new Version([ 'value' => $match[2], 'details' => 3 ]);
-            $this->data->browser->type = $match[1] == 'Messenger' ? Constants\BrowserType::APP_CHAT : Constants\BrowserType::APP_EMAIL;
+
+            switch ($match[1]) {
+                case 'Messenger':
+                    $this->data->browser->type = Constants\BrowserType::APP_CHAT;
+                    break;
+                case 'Mail':
+                    $this->data->browser->type = Constants\BrowserType::APP_EMAIL;
+                    break;
+                case 'Weather':
+                    $this->data->browser->type = Constants\BrowserType::APP_NEWS;
+                    break;
+            }
 
             $this->data->os->reset([
                 'name'      => 'Android',
@@ -159,6 +216,28 @@ trait Application
                 $this->data->device = $device;
             }
         }
+
+        /* Yahoo Mobile App */
+
+        if (preg_match('/YahooJMobileApp\/[0-9\.]+ \(Android [a-z]+; ([0-9\.]+)\) \([^;]+; ?[^;]+; ?[^;]+; ?([^;]+); ?([0-9\.]+)\/[^\;\)\/]+\)/u', $ua, $match)) {
+            $this->data->browser->name = 'Yahoo Mobile';
+            $this->data->browser->version = new Version([ 'value' => $match[1], 'details' => 3 ]);
+            $this->data->browser->type = Constants\BrowserType::APP_SEARCH;
+
+            $this->data->os->reset([
+                'name'      => 'Android',
+                'version'   => new Version([ 'value' => $match[3] ])
+            ]);
+
+            $this->data->device->type = Constants\DeviceType::MOBILE;
+
+            $device = Data\DeviceModels::identify('android', $match[2]);
+            if ($device->identified) {
+                $device->identified |= $this->data->device->identified;
+                $this->data->device = $device;
+            }
+        }
+
     }
 
     private function detectRemainingApplications($ua)
