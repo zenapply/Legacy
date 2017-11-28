@@ -1,4 +1,5 @@
 {
   "name": "which-browser-legacy",
+  "version": "2.0.13",
   "description": "Detects the browser and device"
 }
